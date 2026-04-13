@@ -1,0 +1,48 @@
+This is BibTeX, Version 0.99d (TeX Live 2022/dev/Debian)
+Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
+The top-level auxiliary file: main.aux
+The style file: plainnat.bst
+Database file #1: references.bib
+Warning--there's a number but no volume in berge2018fixest
+You've used 5 entries,
+            2773 wiz_defined-function locations,
+            628 strings with 5997 characters,
+and the built_in function-call counts, 2255 in all, are:
+= -- 205
+> -- 139
+< -- 1
++ -- 47
+- -- 42
+* -- 195
+:= -- 371
+add.period$ -- 21
+call.type$ -- 5
+change.case$ -- 29
+chr.to.int$ -- 5
+cite$ -- 11
+duplicate$ -- 95
+empty$ -- 164
+format.name$ -- 47
+if$ -- 452
+int.to.chr$ -- 1
+int.to.str$ -- 1
+missing$ -- 4
+newline$ -- 39
+num.names$ -- 20
+pop$ -- 43
+preamble$ -- 1
+purify$ -- 24
+quote$ -- 0
+skip$ -- 72
+stack$ -- 0
+substring$ -- 60
+swap$ -- 4
+text.length$ -- 0
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 55
+warning$ -- 1
+while$ -- 19
+width$ -- 0
+write$ -- 82
+(There was 1 warning)

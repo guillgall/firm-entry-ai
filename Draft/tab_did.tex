@@ -1,0 +1,25 @@
+\begin{table}
+\centering
+\begin{talltblr}[         %% tabularray outer open
+caption={Difference-in-Differences Estimates},
+note{}={* p \num{< 0.1}, ** p \num{< 0.05}, *** p \num{< 0.01}},
+note{ }={Standard errors clustered by 2-digit NAICS sector. Post$_{\text{ChatGPT}}$: Nov 2022 -- Apr 2025. Post$_{\text{Agentic}}$: May 2025 onwards.},
+]                     %% tabularray outer close
+{                     %% tabularray inner open
+colspec={Q[]Q[]Q[]Q[]Q[]},
+hline{2}={1-5}{solid, black, 0.05em},
+hline{4}={1-5}{solid, black, 0.05em},
+hline{1}={1-5}{solid, black, 0.08em},
+hline{8}={1-5}{solid, black, 0.08em},
+column{2-5}={}{halign=c},
+column{1}={}{halign=l},
+}                     %% tabularray inner close
+& (1) log(BA) & (2) BA Index & (3) BA Level & (4) Two-period \\
+Post$_{\text{ChatGPT}}$ $\times$ AI Exposure & \num{0.269} & \num{35.222} & \num{416.305} & \num{0.180} \\
+& (\num{0.248}) & (\num{33.841}) & (\num{7073.848}) & (\num{0.238}) \\
+Observations & \num{4176} & \num{4176} & \num{4176} & \num{4176} \\
+R$^2$ & \num{0.984} & \num{0.673} & \num{0.901} & \num{0.984} \\
+Sector FE & X & X & X & X \\
+Month FE & X & X & X & X \\
+\end{talltblr}
+\end{table}
