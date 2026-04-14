@@ -1,17 +1,19 @@
 # =============================================================================
-# 05_run_all.R
+# ap_run_all.R
 # Master script: run the full pipeline in order.
-# Usage:  Rscript Code/05_run_all.R   (from project root)
-#      or source("Code/05_run_all.R") (from within R/RStudio)
+# Usage:  Rscript Code/ap_run_all.R   (from project root)
+#      or source("Code/ap_run_all.R") (from within R/RStudio)
 # =============================================================================
 
-setwd("/Users/ggallacher/Documents/GitHub/firm-entry-ai")
+library(here)
+ROOT <- here::here()
 
 steps <- list(
-  list(script = "Code/01_download_bfs.R",      label = "01 Download BFS (monthly SA)"),
-  list(script = "Code/02_clean_bfs.R",          label = "02 Clean BFS → panel"),
-  list(script = "Code/03_ai_exposure.R",         label = "03 AI exposure (AIOE/AIIE)"),
-  list(script = "Code/04_merge_and_analysis.R",  label = "04 Merge, regressions & figures")
+  list(script = file.path(ROOT, "Code", "01_download_bfs.R"),     label = "01 Download BFS (monthly SA)"),
+  list(script = file.path(ROOT, "Code", "02_clean_bfs.R"),         label = "02 Clean BFS → panel"),
+  list(script = file.path(ROOT, "Code", "03_ai_exposure.R"),        label = "03 AI exposure (AIOE/AIIE)"),
+  list(script = file.path(ROOT, "Code", "04_merge_and_analysis.R"), label = "04 Merge, regressions & figures"),
+  list(script = file.path(ROOT, "Code", "05_state_analysis.R"),     label = "05 State-level DiD (state FE)")
 )
 
 for (s in steps) {

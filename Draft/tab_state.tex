@@ -1,0 +1,27 @@
+\begin{table}
+\centering
+\begin{talltblr}[         %% tabularray outer open
+caption={State-Level Difference-in-Differences Estimates},
+label={tab:state},
+note{}={* p \num{< 0.1}, ** p \num{< 0.05}, *** p \num{< 0.01}},
+note{ }={Standard errors clustered by state. AI exposure is the AI Geographic Exposure (AIGE) index from \citet{felten2021occupational} Appendix~C, constructed from occupation-level AIOE scores weighted by the state employment-mix across occupations. Post$_{\text{ChatGPT}}$: Nov 2022 -- Apr 2025. Post$_{\text{Agentic}}$: May 2025 onwards.},
+]                     %% tabularray outer close
+{                     %% tabularray inner open
+width=\linewidth,
+colspec={Q[]Q[]Q[]Q[]},
+hline{2}={1-4}{solid, black, 0.05em},
+hline{4}={1-4}{solid, black, 0.05em},
+hline{1}={1-4}{solid, black, 0.08em},
+hline{8}={1-4}{solid, black, 0.08em},
+column{2-4}={}{halign=c},
+column{1}={}{halign=l},
+}                     %% tabularray inner close
+& (1) log(BA) & (2) BA Index & (3) Two-period \\
+Post$_{\text{ChatGPT}}$ $\times$ AI Exposure & \num{-0.445} & \num{-67.191} & \num{-0.423} \\
+& (\num{0.274}) & (\num{42.331}) & (\num{0.265}) \\
+Observations & \num{13572} & \num{13572} & \num{13572} \\
+R$^2$ & \num{0.986} & \num{0.825} & \num{0.986} \\
+State FE & $\checkmark$ & $\checkmark$ & $\checkmark$ \\
+Month FE & $\checkmark$ & $\checkmark$ & $\checkmark$ \\
+\end{talltblr}
+\end{table}

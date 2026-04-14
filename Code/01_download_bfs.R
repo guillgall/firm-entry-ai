@@ -7,9 +7,9 @@
 
 library(tidyverse)
 library(httr)
+library(here)
 
-setwd("/Users/ggallacher/Documents/GitHub/firm-entry-ai")
-ROOT <- getwd()
+ROOT <- here::here()
 
 # Census BFS monthly SA CSV (national aggregate, 2004-present):
 BFS_URL  <- "https://www.census.gov/econ/bfs/csv/bfs_monthly.csv"

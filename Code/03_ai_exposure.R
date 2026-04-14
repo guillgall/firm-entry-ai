@@ -11,9 +11,66 @@
 library(tidyverse)
 library(httr)
 library(readxl)
+library(here)
 
-setwd("/Users/ggallacher/Documents/GitHub/firm-entry-ai")
-ROOT <- getwd()
+# State name → BFS abbreviation crosswalk (matches geo codes in bfs_monthly.csv)
+state_crosswalk <- tribble(
+  ~state_name,            ~state,
+  "Alabama",              "AL",
+  "Alaska",               "AK",
+  "Arizona",              "AZ",
+  "Arkansas",             "AR",
+  "California",           "CA",
+  "Colorado",             "CO",
+  "Connecticut",          "CT",
+  "Delaware",             "DE",
+  "District of Columbia", "DC",
+  "Florida",              "FL",
+  "Georgia",              "GA",
+  "Hawaii",               "HI",
+  "Idaho",                "ID",
+  "Illinois",             "IL",
+  "Indiana",              "IN",
+  "Iowa",                 "IA",
+  "Kansas",               "KS",
+  "Kentucky",             "KY",
+  "Louisiana",            "LA",
+  "Maine",                "ME",
+  "Maryland",             "MD",
+  "Massachusetts",        "MA",
+  "Michigan",             "MI",
+  "Minnesota",            "MN",
+  "Mississippi",          "MS",
+  "Missouri",             "MO",
+  "Montana",              "MT",
+  "Nebraska",             "NE",
+  "Nevada",               "NV",
+  "New Hampshire",        "NH",
+  "New Jersey",           "NJ",
+  "New Mexico",           "NM",
+  "New York",             "NY",
+  "North Carolina",       "NC",
+  "North Dakota",         "ND",
+  "Ohio",                 "OH",
+  "Oklahoma",             "OK",
+  "Oregon",               "OR",
+  "Pennsylvania",         "PA",
+  "Rhode Island",         "RI",
+  "South Carolina",       "SC",
+  "South Dakota",         "SD",
+  "Tennessee",            "TN",
+  "Texas",                "TX",
+  "Utah",                 "UT",
+  "Vermont",              "VT",
+  "Virginia",             "VA",
+  "Washington",           "WA",
+  "West Virginia",        "WV",
+  "Wisconsin",            "WI",
+  "Wyoming",              "WY",
+  "Puerto Rico",          "PR"
+)
+
+ROOT <- here::here()
 
 # ---------------------------------------------------------------------------
 # 1. Download
@@ -106,6 +163,33 @@ ai_exp2 <- ai_exp |>
   summarise(aiie = mean(aiie, na.rm = TRUE), .groups = "drop")
 
 # ---------------------------------------------------------------------------
+# 5b. Add BFS combined-sector codes
+# The BFS aggregates Manufacturing (31-33), Retail (44-45), and
+# Transportation & Warehousing (48-49) into single codes MNF, RET, TW.
+# Create matching AIOE entries as employment-unweighted averages of
+# the constituent 2-digit sectors (best approximation without employment data).
+combined_sectors <- tribble(
+  ~naics2, ~components,
+  "MNF",   c("31", "32", "33"),
+  "RET",   c("44", "45"),
+  "TW",    c("48", "49")
+)
+
+combined_aioe <- combined_sectors |>
+  mutate(
+    aiie = map_dbl(components, ~ {
+      vals <- ai_exp2$aiie[ai_exp2$naics2 %in% .x]
+      if (length(vals) == 0) NA_real_ else mean(vals, na.rm = TRUE)
+    })
+  ) |>
+  select(naics2, aiie) |>
+  filter(!is.na(aiie))
+
+ai_exp2 <- bind_rows(ai_exp2, combined_aioe)
+message("Added combined-sector codes: ",
+        paste(combined_aioe$naics2, collapse = ", "))
+
+# ---------------------------------------------------------------------------
 # 6. Normalise and add quartile
 # ---------------------------------------------------------------------------
 ai_exp2 <- ai_exp2 |>
@@ -127,3 +211,33 @@ print(ai_exp2, n = Inf)
 out_path <- file.path(ROOT, "Data", "Output", "ai_exposure_naics.rds")
 saveRDS(ai_exp2, out_path)
 message("Saved: ", out_path)
+
+# ---------------------------------------------------------------------------
+# 8. State-level AIGE from Data Appendix C
+# ---------------------------------------------------------------------------
+message("\nExtracting state-level AIGE from Appendix C...")
+aige_raw <- read_excel(local_path, sheet = "Appendix C", skip = 0)
+message("Appendix C dims: ", nrow(aige_raw), " x ", ncol(aige_raw))
+
+# State rows have FIPS codes divisible by 1000 (e.g., 1000 = Alabama)
+state_aige <- aige_raw |>
+  rename(fips = 1, geo_name = 2, aige = 3) |>
+  mutate(fips = as.integer(fips)) |>
+  filter(!is.na(fips), fips %% 1000 == 0) |>
+  inner_join(state_crosswalk, by = c("geo_name" = "state_name")) |>
+  mutate(
+    aige_norm     = (aige - min(aige)) / (max(aige) - min(aige)),
+    aige_quartile = ntile(aige, 4)
+  ) |>
+  select(state, geo_name, fips, aige, aige_norm, aige_quartile) |>
+  arrange(desc(aige))
+
+message("State AIGE rows: ", nrow(state_aige))
+message("\nState AI Geographic Exposure (AIGE) summary:")
+print(summary(state_aige$aige))
+message("\nTop 10 states by AIGE:")
+print(head(state_aige, 10))
+
+out_path_state <- file.path(ROOT, "Data", "Output", "state_aige.rds")
+saveRDS(state_aige, out_path_state)
+message("Saved: ", out_path_state)

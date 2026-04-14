@@ -9,9 +9,9 @@ library(fixest)
 library(modelsummary)
 library(ggplot2)
 library(broom)
+library(here)
 
-setwd("/Users/ggallacher/Documents/GitHub/firm-entry-ai")
-ROOT <- getwd()
+ROOT <- here::here()
 
 # ---------------------------------------------------------------------------
 # 0. Load data
@@ -170,10 +170,10 @@ spotlight_sectors <- bfs_sectors_df |>
   filter(date >= as.Date("2016-01-01")) |>
   mutate(
     sector_label = case_when(
-      naics2 == "54"                    ~ "Professional Services (NAICS 54)",
-      naics2 %in% c("31", "32", "33")   ~ "Manufacturing (NAICS 31\u201333)",
-      naics2 == "23"                    ~ "Construction (NAICS 23)",
-      TRUE                              ~ NA_character_
+      naics2 == "54"  ~ "Professional Services (NAICS 54)",
+      naics2 == "MNF" ~ "Manufacturing (NAICS 31\u201333)",
+      naics2 == "23"  ~ "Construction (NAICS 23)",
+      TRUE            ~ NA_character_
     )
   ) |>
   filter(!is.na(sector_label)) |>
@@ -309,9 +309,165 @@ ggsave(file.path(ROOT, "Draft", "fig_event_study.pdf"), fig_es,
        width = 7, height = 4, device = "pdf")
 message("Saved: Draft/fig_event_study.pdf")
 
+## 4c. Faceted robustness event-study: BA, HBA, WBA, BF4Q ----------------
+# Helper: run event-study feols for a given log-outcome column and return
+# a tidy tibble of (t, coef, ci_lo, ci_hi) ready for ggplot.
+run_es <- function(outcome_col, data, use_log = TRUE) {
+  df_run <- data |>
+    filter(!is.na(.data[[outcome_col]]), .data[[outcome_col]] > 0) |>
+    mutate(log_outcome = if (use_log) log(.data[[outcome_col]])
+                         else .data[[outcome_col]]) |>
+    filter(between(event_t, -36, 36)) |>
+    mutate(
+      event_bin = case_when(
+        event_t <= -36 ~ -36L,
+        event_t >=  36 ~  36L,
+        TRUE           ~ as.integer(event_t)
+      )
+    )
+
+  if (nrow(df_run) < 50) {
+    message("  Skipping ", outcome_col, " – too few rows")
+    return(NULL)
+  }
+
+  # Reference period: prefer t = -1; fall back to last available pre-period
+  # (BF8Q lacks recent observations due to the 8-quarter follow-up window)
+  all_bins <- sort(unique(df_run$event_bin))
+  pre_bins <- all_bins[all_bins < 0]
+  if (length(pre_bins) == 0) {
+    message("  Skipping ", outcome_col, " – no pre-period observations")
+    return(NULL)
+  }
+  ref_bin <- if (-1L %in% all_bins) -1L else max(pre_bins)
+  message("  ", outcome_col, ": reference period t = ", ref_bin)
+
+  df_run <- df_run |>
+    mutate(event_bin = relevel(factor(event_bin), ref = as.character(ref_bin)))
+
+  mod <- tryCatch(
+    feols(log_outcome ~ i(event_bin, aioe_norm, ref = as.character(ref_bin)) |
+            naics2 + ym,
+          data = df_run, cluster = ~naics2),
+    error = function(e) { message("  Error in ", outcome_col, ": ", e$message); NULL }
+  )
+  if (is.null(mod)) return(NULL)
+
+  out <- tidy(mod, conf.int = TRUE) |>
+    filter(str_detect(term, "event_bin")) |>
+    mutate(t = as.numeric(str_extract(term, "-?\\d+"))) |>
+    select(t, coef = estimate, ci_lo = conf.low, ci_hi = conf.high) |>
+    bind_rows(tibble(t = ref_bin * 1.0, coef = 0, ci_lo = 0, ci_hi = 0)) |>
+    arrange(t)
+
+  out
+}
+
+# Labels for facet strips
+series_meta <- tribble(
+  ~col,     ~label,                                          ~use_log,
+  "ba",     "Business Applications (BA)",                    TRUE,
+  "cba",    "Corrected Applications (CBA)",                  TRUE,
+  "hba",    "High-Propensity Applications (HBA)",            TRUE,
+  "wba",    "Applications w/ Planned Wages (WBA)",           TRUE,
+  "bf4q",   "Formations \u22644Q (BF4Q)",                    TRUE,
+  "bf8q",   "Formations \u22648Q (BF8Q)",                    TRUE,
+  "pbf4q",  "Projected Formations \u22644Q (PBF4Q)",         TRUE,
+  "pbf8q",  "Projected Formations \u22648Q (PBF8Q)",         TRUE,
+  "sbf4q",  "SA Formations \u22644Q (SBF4Q)",                TRUE,
+  "sbf8q",  "SA Formations \u22648Q (SBF8Q)",                TRUE,
+  "dur4q",  "Median Weeks to Formation \u22644Q (DUR4Q)",    FALSE,
+  "dur8q",  "Median Weeks to Formation \u22648Q (DUR8Q)",    FALSE
+)
+
+# Use the merged df (df_reg already has naics2, ym, event_t, aioe_norm)
+es_facet_list <- series_meta |>
+  filter(col %in% names(df_reg)) |>
+  mutate(data = map2(col, use_log, \(c, l) run_es(c, df_reg, use_log = l))) |>
+  filter(!map_lgl(data, is.null)) |>
+  unnest(data) |>
+  mutate(label = factor(label, levels = series_meta$label))
+
+if (nrow(es_facet_list) > 0) {
+  fig_es_robust <- ggplot(es_facet_list, aes(x = t, y = coef)) +
+    geom_hline(yintercept = 0, linetype = "dashed", colour = "grey50") +
+    geom_vline(xintercept =  0, linetype = "dashed", colour = "black",
+               linewidth = 0.45) +
+    geom_vline(xintercept = 30, linetype = "dashed", colour = "grey50",
+               linewidth = 0.45) +
+    geom_ribbon(aes(ymin = ci_lo, ymax = ci_hi),
+                alpha = 0.18, fill = "steelblue") +
+    geom_line(colour = "steelblue", linewidth = 0.7) +
+    geom_point(colour = "steelblue", size = 1.2) +
+    facet_wrap(~ label, ncol = 3, scales = "free_y") +
+    annotate("text", x = 30.5, y = Inf, label = "Agentic AI",
+             vjust = 1.4, hjust = 0, size = 2.4, colour = "grey40") +
+    labs(
+      title = "Event Study: AI Exposure \u00d7 Post — Robustness across BFS Series",
+      subtitle = "Outcome: log(series). Sector + month FE. 95% CI, SEs clustered by NAICS-2.",
+      x = "Months relative to ChatGPT launch (Nov 2022)",
+      y = "Coefficient on AI Exposure"
+    ) +
+    theme_paper +
+    theme(
+      strip.background = element_rect(fill = "grey93", colour = NA),
+      strip.text       = element_text(size = 8.5, face = "bold"),
+      plot.subtitle    = element_text(size = 8, colour = "grey40")
+    )
+
+  ggsave(file.path(ROOT, "Draft", "fig_es_robust.pdf"), fig_es_robust,
+         width = 10, height = 12, device = "pdf")
+  message("Saved: Draft/fig_es_robust.pdf")
+} else {
+  message("No alternative series available yet for faceted event study.",
+          " Re-run after 02_clean_bfs.R update.")
+}
+
 # ---------------------------------------------------------------------------
 # 5. Regression tables (modelsummary → LaTeX)
 # ---------------------------------------------------------------------------
+
+# gof_map: FE rows use fmt=0; the post-processing helper below replaces the
+# raw "X" that tabularray emits for logical TRUE with a LaTeX checkmark.
+gof_map_sector <- list(
+  list(raw = "nobs",       clean = "Observations", fmt = 0),
+  list(raw = "r.squared",  clean = "R$^2$",        fmt = 3),
+  list(raw = "FE: naics2", clean = "Sector FE",    fmt = 0),
+  list(raw = "FE: ym",     clean = "Month FE",     fmt = 0)
+)
+
+# Post-processing helper: injects label, sets width=\linewidth, and converts
+# the "X" that tinytable/tabularray emits for boolean TRUE → $\checkmark$.
+fix_tex_table <- function(path, label) {
+  lines <- readLines(path)
+
+  # 1. Inject \label after \caption
+  cap_i <- grep("^caption=", lines)
+  if (length(cap_i) > 0 && !any(grepl(paste0("label=\\{", label, "\\}"), lines)))
+    lines <- append(lines, paste0("label={", label, "},"), after = cap_i[1])
+
+  # 2. Inject width=\linewidth before colspec (tabularray body options)
+  col_i <- grep("^colspec=", lines)
+  if (length(col_i) > 0 && !any(grepl("^width=", lines)))
+    lines <- append(lines, "width=\\linewidth,", after = col_i[1] - 1)
+
+  # 3. Replace boolean "X" cells emitted by tinytable with $\checkmark$
+  #
+  # Two bugs to avoid:
+  #   a) Backslashes: fixed=TRUE writes the R string literally, so
+  #      "$\\checkmark$" (one R escape = one real backslash) is correct LaTeX.
+  #      "$\\\\checkmark$" would write TWO backslashes and break compilation.
+  #   b) Overlapping delimiters: "& X & X &" — the shared "&" means gsub
+  #      skips every other cell in a single pass.  Loop until stable.
+  while (any(grepl("& X &", lines, fixed = TRUE)))
+    lines <- gsub("& X &", "& $\\checkmark$ &", lines, fixed = TRUE)
+
+  # Last column ends with " \\" (tabularray row terminator)
+  lines <- gsub("& X \\\\", "& $\\checkmark$ \\\\", lines, fixed = TRUE)
+
+  writeLines(lines, path)
+}
+
 models <- list(
   "(1) log(BA)"    = did_main,
   "(2) BA Index"   = did_idx,
@@ -319,19 +475,11 @@ models <- list(
   "(4) Two-period" = did_two
 )
 
-gof_map <- tribble(
-  ~raw,          ~clean,              ~fmt,
-  "nobs",        "Observations",      0,
-  "r.squared",   "R$^2$",             3,
-  "FE: naics2",  "Sector FE",         0,
-  "FE: ym",      "Month FE",          0
-)
-
 modelsummary(
   models,
   output     = file.path(ROOT, "Draft", "tab_did.tex"),
   stars      = c("*" = 0.10, "**" = 0.05, "***" = 0.01),
-  gof_map    = gof_map,
+  gof_map    = gof_map_sector,
   coef_map   = c(
     "post:aioe_norm"         = "Post$_{\\text{ChatGPT}}$ $\\times$ AI Exposure",
     "post_chatgpt:aioe_norm" = "Post$_{\\text{ChatGPT}}$ $\\times$ AI Exposure",
@@ -345,6 +493,8 @@ modelsummary(
 )
 message("Saved: Draft/tab_did.tex")
 
+fix_tex_table(file.path(ROOT, "Draft", "tab_did.tex"), "tab:did")
+
 modelsummary(
   list("Event Study" = es_model),
   output   = file.path(ROOT, "Draft", "tab_event_study.tex"),
@@ -354,5 +504,198 @@ modelsummary(
   escape   = FALSE
 )
 message("Saved: Draft/tab_event_study.tex")
+fix_tex_table(file.path(ROOT, "Draft", "tab_event_study.tex"), "tab:event_study")
 
 message("\nAll outputs written to Draft/.")
+
+# ---------------------------------------------------------------------------
+# 6. Robustness: alternative BFS series (HBA, WBA, BF4Q)
+# ---------------------------------------------------------------------------
+# Each model uses the same sector + month FE and NAICS-level AI exposure,
+# but swaps out the outcome variable.
+
+# Check which alternative series are present after the 02_clean_bfs.R update
+# All count-type series that can be log-transformed
+log_series <- c("hba", "cba", "wba", "bf4q", "bf8q", "pbf4q", "pbf8q", "sbf4q", "sbf8q")
+# Duration series: kept in levels (weeks), lower = faster formation
+dur_series <- c("dur4q", "dur8q")
+all_robust_series <- c(log_series, dur_series)
+
+series_present <- function(col) col %in% names(df_reg) && sum(!is.na(df_reg[[col]])) > 0
+message("Alternative series available: ",
+        paste(all_robust_series[sapply(all_robust_series, series_present)], collapse = ", "))
+
+# Column labels for the robustness table
+col_labels <- c(
+  ba    = "log(BA)",    cba   = "log(CBA)",   hba   = "log(HBA)",
+  wba   = "log(WBA)",   bf4q  = "log(BF4Q)",  bf8q  = "log(BF8Q)",
+  pbf4q = "log(PBF4Q)", pbf8q = "log(PBF8Q)",
+  sbf4q = "log(SBF4Q)", sbf8q = "log(SBF8Q)",
+  dur4q = "DUR4Q (wks)", dur8q = "DUR8Q (wks)"
+)
+
+robust_models <- list("(1) log(BA)" = did_main)
+col_num <- 2L
+
+run_did <- function(col, data, label) {
+  if (!series_present(col)) return(invisible(NULL))
+  is_dur <- col %in% dur_series
+
+  df_col <- if (is_dur) {
+    data |> filter(!is.na(.data[[col]]), .data[[col]] > 0) |>
+      mutate(outcome = .data[[col]])           # levels for duration
+  } else {
+    data |> filter(.data[[col]] > 0) |>
+      mutate(outcome = log(.data[[col]]))       # log for counts
+  }
+
+  # Skip if too few post-period obs (right-truncated series like BF8Q, PBF8Q)
+  n_post <- sum(df_col$post == 1, na.rm = TRUE)
+  if (n_post < 20) {
+    message("  Skipping ", col, " DiD — only ", n_post,
+            " post-period obs (right-truncated series).")
+    return(invisible(NULL))
+  }
+
+  mod <- tryCatch(
+    feols(outcome ~ post:aioe_norm | naics2 + ym,
+          data = df_col, cluster = ~naics2),
+    error = function(e) {
+      message("  ", col, " DiD failed: ", e$message)
+      NULL
+    }
+  )
+  mod
+}
+
+# Tab only shows 5 core series to keep the table page-width.
+# Full set of series (incl. pbf, sbf, dur) appears in fig_es_robust.
+table_series <- c("cba", "hba", "wba", "bf4q")
+for (col in table_series) {
+  if (!series_present(col)) next
+  mod <- run_did(col, df_reg, col_labels[col])
+  if (!is.null(mod)) {
+    lbl <- paste0("(", col_num, ") ", col_labels[col])
+    robust_models[[lbl]] <- mod
+    col_num <- col_num + 1L
+  }
+}
+
+if (length(robust_models) > 1) {
+  modelsummary(
+    robust_models,
+    output   = file.path(ROOT, "Draft", "tab_robust.tex"),
+    stars    = c("*" = 0.10, "**" = 0.05, "***" = 0.01),
+    gof_map  = gof_map_sector,
+    coef_map = c("post:aioe_norm" = "Post $\\times$ AI Exposure"),
+    title    = "Robustness: Alternative BFS Series",
+    notes    = paste(
+      "Standard errors clustered by 2-digit NAICS sector.",
+      "All specifications include sector and month fixed effects.",
+      "BA = total business applications; HBA = high-propensity business",
+      "applications; WBA = applications with planned wages;",
+      "BF4Q = businesses formed within four quarters of application."
+    ),
+    escape   = FALSE
+  )
+
+  fix_tex_table(file.path(ROOT, "Draft", "tab_robust.tex"), "tab:robust")
+  message("Saved: Draft/tab_robust.tex")
+} else {
+  message("Only BA_BA series found; skipping tab_robust.tex.",
+          " Re-run after 02_clean_bfs.R update.")
+}
+
+# ---------------------------------------------------------------------------
+# 7. Summary statistics table: AIIE and BFS by sector
+# ---------------------------------------------------------------------------
+
+sector_labels <- tribble(
+  ~naics2,   ~sector,
+  "11",      "Agriculture, Forestry, Fishing",
+  "21",      "Mining, Quarrying, Oil \\& Gas",
+  "22",      "Utilities",
+  "23",      "Construction",
+  "MNF",     "Manufacturing (NAICS 31--33)",
+  "42",      "Wholesale Trade",
+  "RET",     "Retail Trade (NAICS 44--45)",
+  "TW",      "Transportation \\& Warehousing (48--49)",
+  "51", "Information",
+  "52", "Finance \\& Insurance",
+  "53", "Real Estate \\& Rental",
+  "54", "Professional, Scientific, Technical Svcs",
+  "55", "Management of Companies",
+  "56", "Admin.~\\& Support Services",
+  "61", "Educational Services",
+  "62", "Health Care \\& Social Assistance",
+  "71", "Arts, Entertainment, \\& Recreation",
+  "72", "Accommodation \\& Food Services",
+  "81", "Other Services",
+  "92", "Public Administration"
+)
+
+bfs_stats <- bfs |>
+  filter(!naics2 %in% c("US", "NONAIC"), !is.na(ba)) |>
+  group_by(naics2) |>
+  summarise(
+    mean_ba = mean(ba, na.rm = TRUE),
+    sd_ba   = sd(ba,   na.rm = TRUE),
+    min_ba  = min(ba,  na.rm = TRUE),
+    max_ba  = max(ba,  na.rm = TRUE),
+    n_obs   = n(),
+    .groups = "drop"
+  )
+
+tab_summ <- ai |>
+  select(naics2, aioe) |>
+  inner_join(bfs_stats, by = "naics2") |>
+  left_join(sector_labels, by = "naics2") |>
+  arrange(desc(aioe)) |>
+  mutate(
+    sector = if_else(is.na(sector), paste0("NAICS~", naics2), sector)
+  )
+
+tab_rows <- tab_summ |>
+  mutate(row_tex = sprintf(
+    "  %s & %s & %.2f & %.1f & %.1f & %.1f & %.1f & %d \\\\",
+    sector, naics2, aioe,
+    mean_ba / 1000, sd_ba / 1000,
+    min_ba  / 1000, max_ba / 1000,
+    as.integer(n_obs)
+  )) |>
+  pull(row_tex)
+
+tex_summ <- c(
+  "\\begin{table}[H]",
+  "\\centering",
+  "\\small",
+  "\\caption{AI Industry Exposure and Business Formation Statistics by Sector}",
+  "\\label{tab:summary}",
+  "\\begin{threeparttable}",
+  "\\begin{tabular}{lcrrrrrr}",
+  "\\toprule",
+  paste0("  Sector & NAICS & AIIE",
+         " & Mean & SD & Min & Max & $N$ \\\\"),
+  paste0("  & & ",
+         " & \\multicolumn{4}{c}{Monthly BA (thousands)}",
+         " & (months) \\\\"),
+  "\\cmidrule(lr){4-7}",
+  "\\midrule",
+  tab_rows,
+  "\\bottomrule",
+  "\\end{tabular}",
+  "\\begin{tablenotes}[flushleft]\\footnotesize",
+  paste0("  \\item \\textit{Notes:} AIIE = AI Industry Exposure index from",
+         " \\citet{felten2021occupational}, constructed from O*NET task descriptions",
+         " and aggregated from 4-digit to 2-digit NAICS by employment-weighted averaging.",
+         " Mean, SD, Min, and Max refer to monthly seasonally adjusted business",
+         " applications (thousands) over the full sample period",
+         " (January~2006 to early~2026). $N$ is the number of monthly observations.",
+         " Sectors sorted by AIIE score descending."),
+  "\\end{tablenotes}",
+  "\\end{threeparttable}",
+  "\\end{table}"
+)
+
+writeLines(tex_summ, file.path(ROOT, "Draft", "tab_summary.tex"))
+message("Saved: Draft/tab_summary.tex")

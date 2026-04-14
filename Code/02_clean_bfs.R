@@ -1,111 +1,210 @@
 # =============================================================================
 # 02_clean_bfs.R
-# Parse the Census BFS monthly file (bfs_monthly.csv) and produce a tidy
-# long panel of SEASONALLY ADJUSTED business applications by NAICS-2 sector.
+# Parse the Census BFS monthly file (bfs_monthly.csv) and produce:
+#   1. bfs_panel.rds  – NAICS-2 x time panel with SA BA and alternative series
+#      Columns: naics2, date, ba, hba, wba, bf4q, ba_idx
+#   2. bfs_state.rds  – state x time panel with SA total BA
+#      Columns: state, date, ba, ba_idx
 #
 # Actual file structure (wide by month, one row per sa/naics/series/geo/year):
-#   sa           – "S" = seasonally adjusted, "U" = unadjusted
+#   sa           – "A" = seasonally adjusted, "U" = unadjusted
 #   naics_sector – "TOTAL", "NAICS11", "NAICS21", …
-#   series       – "BA_BA" = business applications, etc.
-#   geo          – "US" (national); state codes also present
+#   series       – "BA_BA", "BA_HBA", "BA_WBA", "BF_BF4Q", etc.
+#   geo          – "US" (national) or 2-letter state abbreviation
 #   year         – integer year
 #   jan … dec    – monthly values
-#
-# OUTPUT: Data/Output/bfs_panel.rds  with columns:
-#   naics2  – 2-digit NAICS code (character); "US" = national aggregate
-#   date    – first day of the month (Date)
-#   ba      – seasonally adjusted business applications
-#   ba_idx  – ba indexed to January 2020 = 100
 # =============================================================================
 
 library(tidyverse)
 library(lubridate)
+library(here)
 
-setwd("/Users/ggallacher/Documents/GitHub/firm-entry-ai")
-ROOT <- getwd()
+ROOT <- here::here()
 
 raw_path <- file.path(ROOT, "Data", "Input", "bfs_monthly.csv")
-
-if (!file.exists(raw_path)) {
-  stop("Raw BFS file not found. Run 01_download_bfs.R first.")
-}
+if (!file.exists(raw_path)) stop("Raw BFS file not found. Run 01_download_bfs.R first.")
 
 # ---------------------------------------------------------------------------
 # 1. Read
 # ---------------------------------------------------------------------------
 raw <- read_csv(raw_path, show_col_types = FALSE)
 message("Raw dims: ", nrow(raw), " x ", ncol(raw))
+message("Series available: ", paste(sort(unique(raw$series)), collapse = ", "))
 
-# ---------------------------------------------------------------------------
-# 2. Filter: seasonally adjusted, business applications, national level
-# ---------------------------------------------------------------------------
 month_cols <- c("jan","feb","mar","apr","may","jun",
                 "jul","aug","sep","oct","nov","dec")
 
-panel <- raw |>
-  filter(
-    sa     == "A",          # seasonally adjusted only ("A" = adjusted)
-    series == "BA_BA",      # total business applications
-    geo    == "US"          # national level
-  ) |>
-  # Extract 2-digit NAICS: "NAICS11" → "11", "TOTAL" → "US"
-  mutate(
-    naics2 = case_when(
-      naics_sector == "TOTAL" ~ "US",
-      TRUE ~ str_pad(str_extract(naics_sector, "\\d+"), 2, pad = "0")
-    )
-  ) |>
-  select(naics2, year, all_of(month_cols)) |>
-  # Pivot months → long
-  mutate(across(all_of(month_cols), as.numeric)) |>   # force numeric (mixed types from CSV)
-  pivot_longer(
-    cols      = all_of(month_cols),
-    names_to  = "month_name",
-    values_to = "ba"
-  ) |>
-  filter(!is.na(ba)) |>
-  mutate(
-    month_num = match(month_name, tolower(month.abb)),
-    date      = ymd(paste(year, month_num, "01", sep = "-"))
-  ) |>
-  select(naics2, date, ba) |>
-  arrange(naics2, date)
-
-message("Panel rows: ",      nrow(panel))
-message("Sectors (naics2): ", paste(sort(unique(panel$naics2)), collapse = ", "))
-message("Date range: ",      min(panel$date), " to ", max(panel$date))
-
 # ---------------------------------------------------------------------------
-# 3. Index to January 2020 = 100
+# Helper: wide month columns → long, return date + value
 # ---------------------------------------------------------------------------
-base_values <- panel |>
-  filter(date == as.Date("2020-01-01")) |>
-  group_by(naics2) |>
-  summarise(ba_base = first(ba), .groups = "drop")
-
-panel <- panel |>
-  left_join(base_values, by = "naics2") |>
-  mutate(
-    ba_idx = if_else(!is.na(ba_base) & ba_base > 0,
-                     100 * ba / ba_base,
-                     NA_real_)
-  ) |>
-  select(naics2, date, ba, ba_idx)
-
-missing_base <- panel |>
-  group_by(naics2) |>
-  summarise(has_base = any(!is.na(ba_idx)), .groups = "drop") |>
-  filter(!has_base)
-
-if (nrow(missing_base) > 0) {
-  warning("Sectors missing Jan-2020 base: ",
-          paste(missing_base$naics2, collapse = ", "))
+to_long <- function(df) {
+  df |>
+    mutate(across(all_of(month_cols), \(x) suppressWarnings(as.numeric(x)))) |>
+    pivot_longer(
+      cols      = all_of(month_cols),
+      names_to  = "month_name",
+      values_to = "value"
+    ) |>
+    filter(!is.na(value)) |>
+    mutate(
+      month_num = match(month_name, tolower(month.abb)),
+      date      = ymd(paste(year, month_num, "01", sep = "-"))
+    ) |>
+    select(-year, -month_name, -month_num)
 }
 
 # ---------------------------------------------------------------------------
-# 4. Save
+# Helper: index a numeric vector relative to Jan 2020 = 100
 # ---------------------------------------------------------------------------
-out_path <- file.path(ROOT, "Data", "Output", "bfs_panel.rds")
-saveRDS(panel, out_path)
-message("Saved: ", out_path)
-print(panel |> filter(naics2 == "US") |> tail(12))
+index_jan2020 <- function(dates, values) {
+  idx    <- which(dates == as.Date("2020-01-01"))
+  base   <- if (length(idx) > 0) values[idx[1]] else NA_real_
+  if (is.na(base) || base == 0) return(rep(NA_real_, length(values)))
+  100 * values / base
+}
+
+# ---------------------------------------------------------------------------
+# 2. NAICS-level panel (national): BA, HBA, WBA, BF4Q
+# ---------------------------------------------------------------------------
+naics_series <- c(
+  "BA_BA",    # Total business applications
+  "BA_CBA",   # Corrected business applications (removes likely non-employer apps)
+  "BA_HBA",   # High-propensity business applications
+  "BA_WBA",   # Applications with planned wages
+  "BF_BF4Q",  # Formations within 4 quarters
+  "BF_BF8Q",  # Formations within 8 quarters
+  "BF_PBF4Q", # Projected formations within 4 quarters
+  "BF_PBF8Q", # Projected formations within 8 quarters
+  "BF_SBF4Q", # Seasonally-adjusted formations within 4 quarters
+  "BF_SBF8Q", # Seasonally-adjusted formations within 8 quarters
+  "BF_DUR4Q", # Median weeks from application to formation (4Q window)
+  "BF_DUR8Q"  # Median weeks from application to formation (8Q window)
+)
+
+naics_long <- raw |>
+  filter(sa == "A", series %in% naics_series, geo == "US") |>
+  mutate(
+    # BFS aggregates some groups into non-numeric codes:
+    #   NAICSMNF = Manufacturing (NAICS 31-33 combined)
+    #   NAICSRET = Retail Trade  (NAICS 44-45 combined)
+    #   NAICSTW  = Transportation & Warehousing (NAICS 48-49 combined)
+    #   NONAICS  = Unclassified / no NAICS code assigned
+    naics2 = case_when(
+      naics_sector == "TOTAL"    ~ "US",
+      naics_sector == "NAICSMNF" ~ "MNF",
+      naics_sector == "NAICSRET" ~ "RET",
+      naics_sector == "NAICSTW"  ~ "TW",
+      naics_sector == "NONAICS"  ~ "NONAIC",
+      TRUE ~ str_pad(str_extract(naics_sector, "\\d+"), 2, pad = "0")
+    ),
+    series_clean = case_when(
+      series == "BA_BA"   ~ "ba",
+      series == "BA_HBA"  ~ "hba",
+      series == "BA_WBA"  ~ "wba",
+      series == "BF_BF4Q"  ~ "bf4q",
+      series == "BF_BF8Q"  ~ "bf8q",
+      series == "BA_CBA"   ~ "cba",
+      series == "BF_PBF4Q" ~ "pbf4q",
+      series == "BF_PBF8Q" ~ "pbf8q",
+      series == "BF_SBF4Q" ~ "sbf4q",
+      series == "BF_SBF8Q" ~ "sbf8q",
+      series == "BF_DUR4Q" ~ "dur4q",
+      series == "BF_DUR8Q" ~ "dur8q",
+      TRUE                 ~ series
+    )
+  ) |>
+  select(naics2, series_clean, year, all_of(month_cols)) |>
+  to_long()
+
+# Collapse any duplicate naics2/series/date cells by summing
+# (duplicates arise when multiple raw rows share the same key, e.g. vintage
+# overlaps in the BF series; summing is wrong for rates so we take the mean)
+dups <- naics_long |>
+  count(naics2, series_clean, date) |>
+  filter(n > 1)
+if (nrow(dups) > 0) {
+  message("Duplicate naics2/series/date cells: ", nrow(dups),
+          " — collapsing by mean.")
+  naics_long <- naics_long |>
+    group_by(naics2, series_clean, date) |>
+    summarise(value = mean(value, na.rm = TRUE), .groups = "drop")
+}
+
+message("NAICS-level series found: ",
+        paste(sort(unique(naics_long$series_clean)), collapse = ", "))
+
+naics_panel <- naics_long |>
+  pivot_wider(
+    id_cols     = c(naics2, date),
+    names_from  = series_clean,
+    values_from = value
+  ) |>
+  arrange(naics2, date)
+
+# Index BA to Jan 2020 = 100
+naics_panel <- naics_panel |>
+  group_by(naics2) |>
+  mutate(ba_idx = index_jan2020(date, ba)) |>
+  ungroup()
+
+message("NAICS panel rows: ", nrow(naics_panel))
+message("Sectors (naics2): ",
+        paste(sort(unique(naics_panel$naics2)), collapse = ", "))
+message("Date range: ", min(naics_panel$date), " to ", max(naics_panel$date))
+message("Columns: ", paste(names(naics_panel), collapse = ", "))
+
+saveRDS(naics_panel, file.path(ROOT, "Data", "Output", "bfs_panel.rds"))
+message("Saved: Data/Output/bfs_panel.rds")
+print(naics_panel |> filter(naics2 == "US") |> tail(6))
+
+# ---------------------------------------------------------------------------
+# 3. State-level panel: multiple SA series, TOTAL, by state
+#    BF / formation series are national-only in BFS; state level has BA variants
+# ---------------------------------------------------------------------------
+state_series <- c("BA_BA", "BA_HBA", "BA_WBA", "BA_CBA")
+
+state_long <- raw |>
+  filter(sa == "A", series %in% state_series,
+         naics_sector == "TOTAL", geo != "US") |>
+  rename(state = geo) |>
+  mutate(series_clean = case_when(
+    series == "BA_BA"  ~ "ba",
+    series == "BA_HBA" ~ "hba",
+    series == "BA_WBA" ~ "wba",
+    series == "BA_CBA" ~ "cba",
+    TRUE               ~ series
+  )) |>
+  select(state, series_clean, year, all_of(month_cols)) |>
+  to_long()
+
+# Deduplicate within series
+dups_s <- state_long |> count(state, series_clean, date) |> filter(n > 1)
+if (nrow(dups_s) > 0) {
+  message("Duplicate state/series/date rows (", nrow(dups_s), "); collapsing by mean.")
+  state_long <- state_long |>
+    group_by(state, series_clean, date) |>
+    summarise(value = mean(value, na.rm = TRUE), .groups = "drop")
+}
+
+message("State series found: ",
+        paste(sort(unique(state_long$series_clean)), collapse = ", "))
+
+state_panel <- state_long |>
+  pivot_wider(
+    id_cols     = c(state, date),
+    names_from  = series_clean,
+    values_from = value
+  ) |>
+  group_by(state) |>
+  mutate(ba_idx = index_jan2020(date, ba)) |>
+  ungroup() |>
+  arrange(state, date)
+
+message("\nState panel rows: ", nrow(state_panel))
+message("States: ", n_distinct(state_panel$state), " — ",
+        paste(sort(unique(state_panel$state)), collapse = ", "))
+message("Date range: ", min(state_panel$date), " to ", max(state_panel$date))
+
+saveRDS(state_panel, file.path(ROOT, "Data", "Output", "bfs_state.rds"))
+message("Saved: Data/Output/bfs_state.rds")
+print(state_panel |> filter(state == "CA") |> tail(6))

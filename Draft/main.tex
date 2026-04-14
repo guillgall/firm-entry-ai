@@ -39,7 +39,7 @@
 \title{Firm Entry and AI:\\
        Evidence from the US}
 \author{Guillermo Gallacher%
-       \thanks{Indeed Hiring Lab and Universidad del CEMA. \href{mailto:guillermogallacher@gmail.com}{guillermogallacher@gmail.com}}}
+       \thanks{\href{mailto:guillermogallacher@gmail.com}{guillermogallacher@gmail.com}. Indeed Hiring Lab and UCEMA.}}
 \date{\today \\ \medskip \small Preliminary and incomplete. Comments welcome.}
 
 % -----------------------------------------------------------------------
@@ -113,10 +113,11 @@ to estimate a difference-in-differences (DiD) model of the form
     + \beta\,(\text{Post}_t \times \text{AI Exposure}_i) + \varepsilon_{it},
   \label{eq:did}
 \end{equation}
-where $\text{Post}_t$ is an indicator equal to one from November 2022 onwards,
+where $i$ indexes 2-digit NAICS sectors, $t$ indexes calendar months,
+$\text{Post}_t$ is an indicator equal to one from November 2022 onwards,
 $\alpha_i$ are sector fixed effects absorbing time-invariant differences in
-application rates, and $\gamma_t$ are month fixed effects absorbing aggregate
-cyclical variation.
+application rates, $\gamma_t$ are month fixed effects absorbing aggregate
+cyclical variation, and standard errors are clustered by sector.
 The coefficient $\beta$ identifies whether sectors with higher AI exposure
 experienced a differential change in business formation after ChatGPT.
 
@@ -126,6 +127,10 @@ experienced a differential change in business formation after ChatGPT.
 \citet{fossen2024new} examine AI adoption and self-employment at the
 individual level and find positive effects concentrated among high-skilled
 workers.
+\citet{chatterji2025transformative} provide a conceptual treatment of how
+transformative AI reshapes firm organisation, adoption incentives, and
+competitive dynamics---a natural complement to the reduced-form evidence
+presented here.
 \citet{felten2021occupational} construct the AIOE/AIIE index by combining
 O*NET task measures with AI capability scores.
 \citet{haltiwanger2020bfs} describe the Census Bureau BFS and demonstrate
@@ -148,8 +153,14 @@ EIN applications are a leading indicator of actual business formation:
 roughly half of high-propensity applicants open within eight quarters of
 filing.
 We use the official seasonally adjusted series directly and index each
-sector to January 2020~$= 100$, yielding a panel of 20 sectors observed
-from January 2006 through early~2026.
+sector to January 2020~$= 100$, yielding a panel observed from January 2006 through early~2026.
+The BFS publishes 20 sector-level series (excluding the unclassified
+``No NAICS'' category): Manufacturing (NAICS 31--33), Retail Trade
+(44--45), and Transportation \& Warehousing (48--49) are each published
+as single combined codes rather than individual 2-digit breakdowns.
+Public Administration (NAICS~92) is present in the BFS but has no
+corresponding AIOE score and is therefore excluded from the regression
+sample, leaving 19 sectors.
 We define two treatment dates: November~2022 (public launch of ChatGPT)
 and May~2025 (widespread availability of agentic AI tools).
 
@@ -188,6 +199,10 @@ rank highest; Agriculture (NAICS~11, AIIE~$= -1.56$), Transportation
 rank lowest.
 This cross-sectional variation---which is fixed before the ChatGPT
 shock---is the key source of identification.
+Table~\ref{tab:summary} reports the AIIE score alongside summary statistics
+of the BFS series for each sector in the sample.
+
+\input{tab_summary.tex}
 
 % -----------------------------------------------------------------------
 \section{Empirical Strategy}
@@ -205,8 +220,36 @@ $\text{Post}_t$ with a full set of month-relative-to-November-2022
 indicators interacted with $\text{AI Exposure}_i$.
 Parallel pre-trends would be consistent with the identification assumption.
 
-Standard errors are two-way clustered at the 2-digit NAICS sector level
+Standard errors are clustered at the 2-digit NAICS sector level
 using \texttt{fixest} \citep{berge2018fixest}.
+
+We probe robustness along two dimensions.
+First, we substitute the outcome variable with the full suite of BFS
+series, which span the entire formation funnel.
+On the applications side: corrected business applications (CBA), which
+purge filings unlikely to yield an employer business; high-propensity
+applications (HBA); and applications with planned wages (WBA).
+On the formations side: businesses actually formed within four quarters
+(BF4Q) and eight quarters (BF8Q) of filing; Census-projected formations
+at both horizons (PBF4Q, PBF8Q); and seasonally-adjusted formation
+counts (SBF4Q, SBF8Q).
+Finally, the median number of weeks from application to formation
+(DUR4Q, DUR8Q) provides a complementary timing dimension: a negative
+coefficient would indicate that AI exposure compresses the
+application-to-opening lag, consistent with lower operational setup costs.
+If AI lowers barriers to entry, the effect should be visible across all
+stages of the formation funnel.
+Second, we re-estimate the model at the state level, replacing sector
+fixed effects with state fixed effects.
+The outcome is the log of total seasonally adjusted business applications
+aggregated across all sectors within a state, and the AI exposure measure
+is the AI Geographic Exposure (AIGE) index from
+\citeauthor{felten2021occupational}~(\citeyear{felten2021occupational})
+Appendix~C, which is constructed directly from the occupational mix of each
+state and its workers' AI exposure.
+This specification absorbs permanent state-level differences in
+entrepreneurial activity and exploits cross-state variation in AI exposure
+that is independent of the sector composition used in the main analysis.
 
 % -----------------------------------------------------------------------
 \section{Results}
@@ -278,6 +321,171 @@ Table~\ref{tab:did} is designed to capture.
            interval based on sector-clustered standard errors.
            The second dashed line marks May 2025 ($t = +30$, agentic AI).}
   \label{fig:es}
+\end{figure}
+
+\subsection{Robustness Checks}
+\label{sec:results_robust}
+
+\subsubsection*{Alternative BFS series}
+
+Table~\ref{tab:robust} replicates the baseline DiD specification
+(column~(1) of Table~\ref{tab:did}) using three alternative BFS outcome
+variables.
+Column~(2) replaces total business applications with high-propensity
+applications (HBA), defined by the Census Bureau as those most likely to
+become active employer businesses.
+Column~(3) uses applications with planned wages (WBA), which signal
+explicit intent to hire at the time of EIN filing.
+Column~(4) uses the count of businesses that actually formed within four
+quarters of application (BF4Q), the realised formation margin.
+A consistent pattern across the formation funnel---from intent (WBA) to
+high-quality applications (HBA) to actual formations (BF4Q)---strengthens
+the interpretation that AI exposure shifted both the quantity and quality
+of entrepreneurial activity, not merely the propensity to file.
+We additionally examine formations within eight quarters (BF8Q) in the
+event-study figures; because the Census requires a full eight-quarter
+follow-up window before publishing BF8Q, the series is right-truncated
+approximately two years before the data vintage and does not have
+sufficient post-period coverage for a clean DiD estimate.
+The event-study coefficients are nevertheless informative: comparing the
+BF4Q and BF8Q panels reveals whether the additional entry in
+high-AI-exposure sectors converts to operating businesses quickly or
+gradually.
+
+Figure~\ref{fig:es_robust} presents the corresponding event-study
+coefficients for all four series.
+The pre-period estimates are small and insignificant across every panel,
+ruling out differential pre-trends.
+Post-launch dynamics are qualitatively consistent: coefficients drift
+upward at similar timing and reach statistical significance in the same
+window regardless of which formation margin is used as the outcome.
+The BF4Q panel is shifted rightward relative to applications panels,
+reflecting the mechanical lag between filing and actual business opening,
+and provides perhaps the cleanest evidence that the effect translates into
+realised entry rather than merely intent.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{fig_es_robust}
+  \caption{Event-study estimates for four BFS series.
+           Each panel plots the interaction coefficient between
+           AI exposure and a month-relative-to-November-2022 indicator.
+           BA = total applications; CBA = corrected applications;
+           HBA = high-propensity applications;
+           WBA = applications with planned wages;
+           BF4Q/BF8Q = formations within 4/8 quarters;
+           PBF4Q/PBF8Q = projected formations;
+           SBF4Q/SBF8Q = seasonally-adjusted formations;
+           DUR4Q/DUR8Q = median weeks to formation (levels, not logs).
+           Shaded bands are 95\,\% confidence intervals based on
+           sector-clustered standard errors.
+           All specifications include sector and month fixed effects.
+           Dashed vertical lines mark November 2022 ($t=0$) and
+           May 2025 ($t=+30$, agentic AI).}
+  \label{fig:es_robust}
+\end{figure}
+
+\begin{landscape}
+\input{tab_robust.tex}
+\end{landscape}
+
+\subsubsection*{State-level panel with state fixed effects}
+
+Table~\ref{tab:state} presents the state-level DiD estimates.
+The unit of observation is now a state-month cell, with the outcome being
+log total seasonally adjusted business applications aggregated across all
+sectors within the state.
+The AI exposure measure is the AIGE index of
+\citeauthor{felten2021occupational}~(\citeyear{felten2021occupational}),
+which captures the AI exposure of a state's workforce through its
+occupational mix.
+State fixed effects absorb permanent cross-state differences in
+entrepreneurial culture, regulatory environment, and industrial composition;
+month fixed effects absorb national macro shocks as before.
+Standard errors are clustered at the state level (56 clusters).
+
+Figure~\ref{fig:desc_state} provides raw descriptive evidence at the state
+level, analogous to Figure~\ref{fig:desc} for sectors.
+States are sorted into quartiles by their AIGE index and the cross-state
+mean of indexed business applications (January~2020\,=\,100) is plotted for
+each quartile.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.88\textwidth]{fig_desc_state}
+  \caption{Mean business applications (index, January~2020\,=\,100) by
+           AI Geographic Exposure (AIGE) quartile across US states and
+           territories.
+           Q1 denotes the lowest-exposure quartile; Q4 the highest.
+           Lines show simple cross-state means within each quartile.
+           Dashed vertical lines mark November~2022 (ChatGPT launch) and
+           May~2025 (agentic AI wave).}
+  \label{fig:desc_state}
+\end{figure}
+
+Column~(1) shows the single-period estimate; column~(2) uses the indexed
+BA outcome; column~(3) splits the post period as in the main analysis.
+The state-level estimates are statistically insignificant across all
+specifications, in contrast to the sector-level results in
+Table~\ref{tab:did}.
+
+\input{tab_state.tex}
+
+Figure~\ref{fig:es_state} shows the corresponding event-study coefficients,
+and Figure~\ref{fig:es_state_facet} repeats the exercise across the four
+BFS series published at the state level (BA, HBA, WBA, CBA; formation
+series are national-only).
+Pre-period coefficients are flat across all panels, consistent with
+parallel pre-trends, but the post-launch coefficients are imprecise and
+do not reach conventional significance levels in any series.
+
+The absence of a detectable state-level effect likely reflects two
+compounding limitations.
+First, states are highly diversified: even a state with a high-AIGE
+workforce will contain many low-AI sectors that dilute the aggregate
+application signal.
+The sector-level design exploits within-sector variation in AI exposure
+that is averaged away when outcomes are aggregated to the state level.
+Second, the cross-state dispersion of AIGE is considerably smaller than
+the cross-sector dispersion of AIOE, reducing statistical power.
+Together, these features make the state-level panel a demanding test;
+the sector-level estimates remain the primary evidence.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.88\textwidth]{fig_es_state}
+  \caption{State-level event-study estimates: effect of AI Geographic
+           Exposure (AIGE) on $\log(\text{Business Applications})$
+           relative to November 2022 ($t = 0$).
+           Shaded band is the 95\,\% confidence interval based on
+           state-clustered standard errors (56 clusters).
+           State and month fixed effects included.
+           The second dashed line marks May 2025 ($t = +30$, agentic AI).
+           Coefficients are statistically insignificant throughout.}
+  \label{fig:es_state}
+\end{figure}
+
+Figure~\ref{fig:es_state_facet} replicates the state-level event study
+across the four BFS series available at state level.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{fig_es_state_facet}
+  \caption{State-level event-study estimates for four BFS series.
+           Each panel plots the interaction coefficient between
+           AI Geographic Exposure (AIGE) and a month-relative-to-November-2022
+           indicator, estimated on the state $\times$ month panel.
+           BA = total applications; HBA = high-propensity applications;
+           WBA = applications with planned wages;
+           CBA = corrected applications.
+           Business formation series (BF4Q, BF8Q, etc.) are not published
+           at state level by the Census Bureau.
+           Shaded bands are 95\,\% confidence intervals based on
+           state-clustered standard errors (56 clusters).
+           All specifications include state and month fixed effects.
+           Dashed vertical lines mark November~2022 ($t = 0$) and
+           May~2025 ($t = +30$, agentic AI).}
+  \label{fig:es_state_facet}
 \end{figure}
 
 % -----------------------------------------------------------------------
