@@ -37,7 +37,7 @@
 % Title
 % -----------------------------------------------------------------------
 \title{Firm Entry and AI:\\
-       Evidence from the US}
+       Evidence from US Industries}
 \author{Guillermo Gallacher%
        \thanks{\href{mailto:guillermogallacher@gmail.com}{guillermogallacher@gmail.com}. Indeed Hiring Lab and UCEMA.}}
 \date{\today \\ \medskip \small Preliminary and incomplete. Comments welcome.}
@@ -411,10 +411,30 @@ realised entry rather than merely intent.
 \input{tab_robust.tex}
 \end{landscape}
 
-\subsubsection*{State-level panel with state fixed effects}
+Appendix~\ref{app:state} reports a state-level robustness check using the
+AI Geographic Exposure (AIGE) index of
+\citeauthor{felten2021occupational}~(\citeyear{felten2021occupational})
+and state $\times$ month panels.
+The state-level estimates are statistically insignificant, likely because
+state aggregation dilutes the within-sector AI variation that drives the
+main results; the sector-level estimates remain the primary evidence.
+
+% -----------------------------------------------------------------------
+\section{Conclusion}
+\label{sec:conclusion}
+% -----------------------------------------------------------------------
+
+[Conclusion placeholder.]
+
+% -----------------------------------------------------------------------
+\appendix
+% -----------------------------------------------------------------------
+
+\section{State-Level Robustness}
+\label{app:state}
 
 Table~\ref{tab:state} presents the state-level DiD estimates.
-The unit of observation is now a state-month cell, with the outcome being
+The unit of observation is a state-month cell, with the outcome being
 log total seasonally adjusted business applications aggregated across all
 sectors within the state.
 The AI exposure measure is the AIGE index of
@@ -506,13 +526,6 @@ across the four BFS series available at state level.
            Dashed vertical line marks November~2022 ($t = 0$).}
   \label{fig:es_state_facet}
 \end{figure}
-
-% -----------------------------------------------------------------------
-\section{Conclusion}
-\label{sec:conclusion}
-% -----------------------------------------------------------------------
-
-[Conclusion placeholder.]
 
 % -----------------------------------------------------------------------
 \bibliographystyle{plainnat}
