@@ -102,6 +102,58 @@ did_two <- feols(
 print(summary(did_main))
 
 # ---------------------------------------------------------------------------
+# 2b. Marginal effects table: implied % change at selected AIOE percentiles
+# ---------------------------------------------------------------------------
+beta_main <- coef(did_main)[["post:aioe_norm"]]
+
+aioe_pcts <- quantile(ai$aioe_norm, c(0.10, 0.25, 0.50, 0.75, 0.90),
+                      na.rm = TRUE)
+
+# Reference: P25 sector; implied effect vs. P25 at each percentile
+mfx_df <- tibble(
+  percentile  = c("P10", "P25", "P50", "P75", "P90"),
+  aioe_norm   = aioe_pcts,
+  delta_vs_p25 = (aioe_pcts - aioe_pcts["25%"]) * beta_main * 100
+)
+
+message("\nMarginal effects table:")
+print(mfx_df)
+
+# Export as LaTeX
+mfx_rows <- mfx_df |>
+  mutate(row_tex = sprintf(
+    "  %s & %.3f & %+.1f\\%%  \\\\",
+    percentile, aioe_norm, delta_vs_p25
+  )) |>
+  pull(row_tex)
+
+tex_mfx <- c(
+  "\\begin{table}[H]",
+  "\\centering",
+  "\\caption{Implied Effect of AI Exposure on Business Applications}",
+  "\\label{tab:mfx}",
+  "\\begin{tabular}{lcc}",
+  "\\toprule",
+  "  Percentile & AIOE (normalised) & Effect vs.\ P25 sector (\\%) \\\\",
+  "\\midrule",
+  mfx_rows,
+  "\\bottomrule",
+  "\\end{tabular}",
+  "\\begin{tablenotes}[flushleft]\\footnotesize",
+  paste0("  \\item \\textit{Notes:} Implied percentage difference in business",
+         " applications in the post-ChatGPT period relative to a sector at the",
+         " 25th percentile of normalised AI Industry Exposure (AIOE).",
+         " Computed as $(\\text{AIOE}_p - \\text{AIOE}_{P25}) \\times \\hat{\\beta} \\times 100$,",
+         " where $\\hat{\\beta}$ is the DiD estimate from column~(1) of",
+         " Table~\\ref{tab:did}."),
+  "\\end{tablenotes}",
+  "\\end{table}"
+)
+
+writeLines(tex_mfx, file.path(ROOT, "Draft", "tab_mfx.tex"))
+message("Saved: Draft/tab_mfx.tex")
+
+# ---------------------------------------------------------------------------
 # 3. Event study: dynamic effects relative to Nov 2022
 # ---------------------------------------------------------------------------
 # Bin event-time: cap at ±24 months, omit t = -1 (reference period)
@@ -699,3 +751,120 @@ tex_summ <- c(
 
 writeLines(tex_summ, file.path(ROOT, "Draft", "tab_summary.tex"))
 message("Saved: Draft/tab_summary.tex")
+
+# ---------------------------------------------------------------------------
+# 8. Scatter plot: AI exposure vs. % change in applications
+# ---------------------------------------------------------------------------
+# X-axis: AIOE (normalised)
+# Y-axis: % change from pre-ChatGPT average to latest available average
+# One dot per sector; OLS fit line; faceted by BFS series.
+# Pre period:  May 2022 – Oct 2022  (6 months before ChatGPT launch)
+# Post period: last 6 available months in the data
+
+pre_date_sc  <- as.Date("2022-11-01")          # ChatGPT released end of Nov 2022; Nov used as pre-period
+latest_date  <- max(df$date, na.rm = TRUE)     # most recent month in data
+
+message("Scatter pre:  ", pre_date_sc)
+message("Scatter post: ", latest_date)
+
+# Short sector abbreviations for dot labels
+sector_abbrev <- tribble(
+  ~naics2, ~abbrev,
+  "11",    "Ag",
+  "21",    "Mining",
+  "22",    "Utilities",
+  "23",    "Constr.",
+  "MNF",   "Mfg",
+  "42",    "Wholesale",
+  "RET",   "Retail",
+  "TW",    "Transport",
+  "51",    "Info",
+  "52",    "Finance",
+  "53",    "Real Est.",
+  "54",    "Prof. Svcs",
+  "55",    "Mgmt",
+  "56",    "Admin",
+  "61",    "Education",
+  "62",    "Health",
+  "71",    "Arts",
+  "72",    "Food/Hosp",
+  "81",    "Other Svcs",
+  "92",    "Gov't"
+)
+
+scatter_df <- df |>
+  filter(!naics2 %in% c("US", "NONAIC"), ba > 0) |>
+  select(naics2, date, aioe_norm, ba) |>
+  filter(date == pre_date_sc | date == latest_date) |>
+  mutate(period = if_else(date == pre_date_sc, "pre", "post")) |>
+  group_by(naics2, aioe_norm, period) |>
+  summarise(ba = mean(ba, na.rm = TRUE), .groups = "drop") |>
+  pivot_wider(names_from = period, values_from = ba) |>
+  filter(!is.na(pre), !is.na(post), pre > 0) |>
+  mutate(pct_change = 100 * (post - pre) / pre) |>
+  left_join(sector_abbrev, by = "naics2") |>
+  mutate(abbrev = if_else(is.na(abbrev), naics2, abbrev))
+
+message("Scatter sectors: ", nrow(scatter_df))
+
+fig_scatter <- ggplot(scatter_df, aes(x = aioe_norm, y = pct_change)) +
+  geom_hline(yintercept = 0, linetype = "dashed", colour = "grey60") +
+  geom_smooth(method = "lm", se = TRUE, colour = "steelblue",
+              fill = "steelblue", alpha = 0.15, linewidth = 0.8) +
+  geom_point(colour = "grey25", size = 2) +
+  geom_text(aes(label = abbrev), size = 2.5, vjust = -0.7,
+            colour = "grey25", check_overlap = TRUE) +
+  scale_x_continuous(breaks = c(0, 0.25, 0.5, 0.75, 1),
+                     labels = c("0", ".25", ".5", ".75", "1")) +
+  labs(
+    title    = "AI Exposure vs. Change in Business Applications",
+    subtitle = paste0("Nov 2022 vs. ", format(latest_date, "%b %Y")),
+    x        = "AI Industry Exposure (AIOE, normalised 0-1)",
+    y        = "% change in business applications (post vs. pre)"
+  ) +
+  theme_paper +
+  theme(plot.subtitle = element_text(size = 8, colour = "grey40"))
+
+ggsave(file.path(ROOT, "Draft", "fig_scatter.pdf"), fig_scatter,
+       width = 7, height = 5, device = "pdf")
+message("Saved: Draft/fig_scatter.pdf")
+
+# Companion regression table for the scatter
+# Unweighted OLS and WLS weighted by pre-period mean BA (sector size)
+scatter_reg_df <- scatter_df |>
+  left_join(
+    df |>
+      filter(!naics2 %in% c("US", "NONAIC"), date <= pre_date_sc, ba > 0) |>
+      group_by(naics2) |>
+      summarise(weight = mean(ba, na.rm = TRUE), .groups = "drop"),
+    by = "naics2"
+  )
+
+scatter_ols <- lm(pct_change ~ aioe_norm, data = scatter_reg_df)
+scatter_wls <- lm(pct_change ~ aioe_norm, data = scatter_reg_df,
+                  weights = weight)
+
+modelsummary(
+  list("OLS" = scatter_ols, "WLS" = scatter_wls),
+  output  = file.path(ROOT, "Draft", "tab_scatter.tex"),
+  stars   = c("*" = 0.10, "**" = 0.05, "***" = 0.01),
+  coef_map = c(
+    "aioe_norm"   = "AI Exposure (AIOE, normalised)",
+    "(Intercept)" = "Constant"
+  ),
+  gof_map = list(
+    list(raw = "nobs",      clean = "Sectors",  fmt = 0),
+    list(raw = "r.squared", clean = "R$^2$",    fmt = 3)
+  ),
+  title  = "Cross-Sectional Regression: AI Exposure and Change in Business Applications",
+  notes  = paste(
+    "OLS and WLS (weighted by sector mean BA, Nov 2022) estimates.",
+    "Outcome: percentage change in business applications from November~2022",
+    "to the most recent month available.",
+    "Each observation is a 2-digit NAICS sector ($N = 19$)."
+  ),
+  escape = FALSE
+)
+
+fix_tex_table(file.path(ROOT, "Draft", "tab_scatter.tex"), "tab:scatter")
+message("Saved: Draft/tab_scatter.tex")

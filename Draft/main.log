@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex 2024.8.25)  14 APR 2026 16:05
+This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex 2024.8.25)  15 APR 2026 10:16
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -631,38 +631,38 @@ File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 
 {/usr/local/texlive/2024/texmf-var/fonts/map/pdftex/updmap/pdftex.map}{/usr/loc
 al/texlive/2024/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc}]
-<fig_fred_motivation.png, id=65, 1324.95pt x 451.6875pt>
-File: fig_fred_motivation.png Graphic file (type png)
-<use fig_fred_motivation.png>
-Package pdftex.def Info: fig_fred_motivation.png  used on input line 80.
-(pdftex.def)             Requested size: 413.3867pt x 140.92455pt.
-
-Underfull \hbox (badness 1127) in paragraph at lines 84--84
-[]\OT1/cmr/m/n/12 Figure 1: |Busi-ness ap-pli-ca-tions in-dexed to Jan-uary 202
-0 $= 100$ for se-lected sec-
- []
-
-[2
-
- <./fig_fred_motivation.png>] [3]
-<fig_spotlight.pdf, id=114, 505.89pt x 289.08pt>
+<fig_spotlight.pdf, id=61, 505.89pt x 289.08pt>
 File: fig_spotlight.pdf Graphic file (type pdf)
 <use fig_spotlight.pdf>
-Package pdftex.def Info: fig_spotlight.pdf  used on input line 175.
+Package pdftex.def Info: fig_spotlight.pdf  used on input line 72.
 (pdftex.def)             Requested size: 413.3867pt x 236.22668pt.
- [4 <./fig_spotlight.pdf>]
-(./tab_summary.tex
+<fig_scatter.pdf, id=64, 505.89pt x 361.35pt>
+File: fig_scatter.pdf Graphic file (type pdf)
+<use fig_scatter.pdf>
+Package pdftex.def Info: fig_scatter.pdf  used on input line 93.
+(pdftex.def)             Requested size: 399.29463pt x 285.21526pt.
+ [2
+
+ <./fig_spotlight.pdf>] [3 <./fig_scatter.pdf>] [4] (./tab_summary.tex
 Overfull \hbox (7.18387pt too wide) in paragraph at lines 7--38
  [] 
  []
 
-) [5] [6] [7]
-<fig_desc.pdf, id=156, 505.89pt x 289.08pt>
-File: fig_desc.pdf Graphic file (type pdf)
-<use fig_desc.pdf>
-Package pdftex.def Info: fig_desc.pdf  used on input line 275.
-(pdftex.def)             Requested size: 399.29463pt x 228.1722pt.
- [8 <./fig_desc.pdf>] (./tab_did.tex
+) [5] [6] [7] (./tab_scatter.tex
+> Step: init table outer spec.
+> Step: parse table options.
+> Step: split table.
+> Step: init table inner spec.
+> Step: parse table inner spec.
+> Step: execute table commands.
+> Step: calculate cell and line sizes.
+> Step: build the whole table.
+
+Underfull \hbox (badness 2326) in paragraph at lines 26--26
+[]\OT1/cmr/m/n/12 Table 2: Cross--Sec-tional Re-gres-sion: AI Ex-po-sure and
+ []
+
+) [8] (./tab_did.tex
 > Step: init table outer spec.
 > Step: parse table options.
 > Step: split table.
@@ -680,23 +680,28 @@ Overfull \hbox (6.31815pt too wide) in paragraph at lines 26--27
  [][] 
  []
 
-)
-<fig_event_study.pdf, id=172, 505.89pt x 289.08pt>
+) (./tab_mfx.tex
+Underfull \hbox (badness 10000) in paragraph at lines 5--16
+[][]
+ []
+
+) [9]
+<fig_event_study.pdf, id=184, 505.89pt x 289.08pt>
 File: fig_event_study.pdf Graphic file (type pdf)
 <use fig_event_study.pdf>
-Package pdftex.def Info: fig_event_study.pdf  used on input line 317.
+Package pdftex.def Info: fig_event_study.pdf  used on input line 328.
 (pdftex.def)             Requested size: 399.29463pt x 228.1722pt.
- [9] [10 <./fig_event_study.pdf>]
-<fig_es_robust.pdf, id=201, 722.7pt x 867.24pt>
+ [10] [11 <./fig_event_study.pdf>]
+<fig_es_robust.pdf, id=210, 722.7pt x 867.24pt>
 File: fig_es_robust.pdf Graphic file (type pdf)
 <use fig_es_robust.pdf>
-Package pdftex.def Info: fig_es_robust.pdf  used on input line 369.
+Package pdftex.def Info: fig_es_robust.pdf  used on input line 380.
 (pdftex.def)             Requested size: 469.75502pt x 563.71257pt.
- [11]
+ [12]
 Overfull \vbox (53.78255pt too high) has occurred while \output is active []
 
 
-[12 <./fig_es_robust.pdf>] (./tab_robust.tex
+[13 <./fig_es_robust.pdf>] (./tab_robust.tex
 > Step: init table outer spec.
 > Step: parse table options.
 > Step: split table.
@@ -705,17 +710,19 @@ Overfull \vbox (53.78255pt too high) has occurred while \output is active []
 > Step: execute table commands.
 > Step: calculate cell and line sizes.
 > Step: build the whole table.
-) [13]
-<fig_desc_state.pdf, id=233, 505.89pt x 289.08pt>
+) [14]
+
+LaTeX Warning: Reference `fig:desc' on page 15 undefined on input line 419.
+
+<fig_desc_state.pdf, id=241, 505.89pt x 289.08pt>
 File: fig_desc_state.pdf Graphic file (type pdf)
 <use fig_desc_state.pdf>
-Package pdftex.def Info: fig_desc_state.pdf  used on input line 415.
+Package pdftex.def Info: fig_desc_state.pdf  used on input line 426.
 (pdftex.def)             Requested size: 413.3867pt x 236.22668pt.
- [14
+[15
 
 
- <./fig_desc_state.pdf>]
-(./tab_state.tex
+ <./fig_desc_state.pdf>] (./tab_state.tex
 > Step: init table outer spec.
 > Step: parse table options.
 > Step: split table.
@@ -725,58 +732,60 @@ Package pdftex.def Info: fig_desc_state.pdf  used on input line 415.
 > Step: calculate cell and line sizes.
 > Step: build the whole table.
 )
-<fig_es_state.pdf, id=253, 505.89pt x 289.08pt>
+<fig_es_state.pdf, id=261, 505.89pt x 289.08pt>
 File: fig_es_state.pdf Graphic file (type pdf)
 <use fig_es_state.pdf>
-Package pdftex.def Info: fig_es_state.pdf  used on input line 456.
+Package pdftex.def Info: fig_es_state.pdf  used on input line 467.
 (pdftex.def)             Requested size: 413.3867pt x 236.22668pt.
- [15]
-<fig_es_state_facet.pdf, id=264, 578.16pt x 433.62pt>
+ [16]
+<fig_es_state_facet.pdf, id=272, 578.16pt x 433.62pt>
 File: fig_es_state_facet.pdf Graphic file (type pdf)
 <use fig_es_state_facet.pdf>
-Package pdftex.def Info: fig_es_state_facet.pdf  used on input line 473.
+Package pdftex.def Info: fig_es_state_facet.pdf  used on input line 484.
 (pdftex.def)             Requested size: 469.75502pt x 352.31538pt.
- [16 <./fig_es_state.pdf>] (./main.bbl [17 <./fig_es_state_facet.pdf>]) [18] (.
-/main.aux)
+ [17 <./fig_es_state.pdf>]
+(./main.bbl [18 <./fig_es_state_facet.pdf>]) [19] (./main.aux)
  ***********
 LaTeX2e <2023-11-01> patch level 1
 L3 programming layer <2024-02-20>
  ***********
 
 
-LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
+LaTeX Warning: There were undefined references.
 
 Package rerunfilecheck Info: File `main.out' has not changed.
 (rerunfilecheck)             Checksum: 6BC26336AA0948A8B61FD20002ADD527;1400.
  ) 
 Here is how much of TeX's memory you used:
- 15929 strings out of 474116
- 281074 string characters out of 5743682
+ 15950 strings out of 474116
+ 281508 string characters out of 5743682
  1948187 words of memory out of 5000000
- 38014 multiletter control sequences out of 15000+600000
- 575646 words of font info for 96 fonts, out of 8000000 for 9000
+ 38024 multiletter control sequences out of 15000+600000
+ 576897 words of font info for 99 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  75i,15n,101p,863b,954s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/local/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb
 ></usr/local/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb>
 </usr/local/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb><
 /usr/local/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi12.pfb></
-usr/local/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></us
-r/local/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/
-local/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/lo
-cal/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb></usr/loca
-l/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/local/t
-exlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/te
-xlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb></usr/local/tex
-live/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmti12.pfb></usr/local/texl
-ive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt12.pfb></usr/local/texli
-ve/2024/texmf-dist/fonts/type1/public/amsfonts/symbols/msam10.pfb></usr/local/t
-exlive/2024/texmf-dist/fonts/type1/public/cm-super/sfrm0700.pfb></usr/local/tex
-live/2024/texmf-dist/fonts/type1/public/cm-super/sfrm1000.pfb>
-Output written on main.pdf (18 pages, 411784 bytes).
+usr/local/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></us
+r/local/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></usr/
+local/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/lo
+cal/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/loca
+l/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb></usr/local/
+texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/local/tex
+live/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/local/texliv
+e/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texlive
+/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb></usr/local/texlive/
+2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmti12.pfb></usr/local/texlive/2
+024/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt12.pfb></usr/local/texlive/20
+24/texmf-dist/fonts/type1/public/amsfonts/symbols/msam10.pfb></usr/local/texliv
+e/2024/texmf-dist/fonts/type1/public/cm-super/sfrm0700.pfb></usr/local/texlive/
+2024/texmf-dist/fonts/type1/public/cm-super/sfrm1000.pfb>
+Output written on main.pdf (19 pages, 369337 bytes).
 PDF statistics:
- 386 PDF objects out of 1000 (max. 8388607)
- 313 compressed objects within 4 object streams
- 63 named destinations out of 1000 (max. 500000)
- 129 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 404 PDF objects out of 1000 (max. 8388607)
+ 329 compressed objects within 4 object streams
+ 68 named destinations out of 1000 (max. 500000)
+ 124 words of extra memory for PDF output out of 10000 (max. 10000000)
 

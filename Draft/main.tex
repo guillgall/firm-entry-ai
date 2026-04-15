@@ -50,8 +50,9 @@
 
 \begin{abstract}
   \noindent
-  [Abstract placeholder. Summarise: motivation, data, method, main finding,
-  contribution. Roughly 150--200 words.]
+In this short paper I show that, following the release of ChatGPT in November 2022, firm entry increased in AI-exposed sectors, with effects becoming statistically significant only from 2025 onwards.
+Using monthly sector-level business application data from the Census Bureau Business Formation Statistics and a difference-in-differences design, I find that the effect is [X]\% larger for a sector at the 75th versus 25th percentile of AI exposure, and strengthens further after the emergence of agentic AI tools in 2025.
+The results suggest that AI lowers barriers to entry rather than entrenching incumbents.
 \end{abstract}
 
 \noindent\textbf{Keywords:} business formation, artificial intelligence,
@@ -66,42 +67,41 @@
 \label{sec:intro}
 % -----------------------------------------------------------------------
 
-The arrival of large language models---most visibly the public release of
-ChatGPT in November 2022---has revived interest in how general-purpose
-technologies reshape labour markets and firm dynamics
-\citep{felten2021occupational, fossen2024new}.
-Most of this debate focuses on \emph{workers}: which jobs are at risk, and
-for whom.
-But a parallel question may be equally consequential: does AI alter the
-incentives to \emph{start} a business?
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.88\textwidth]{fig_spotlight}
+  \caption{Business applications indexed to January 2020~$=100$.
+           Professional Services (NAICS~54), Total (all NAICS),
+           Manufacturing (NAICS~31--33), and Construction (NAICS~23).
+           Dashed vertical lines mark November 2022 (ChatGPT launch) and
+           May 2025 (agentic AI tools). Seasonally adjusted.
+           Source: Census Bureau BFS.}
+  \label{fig:spotlight}
+\end{figure}
+
+After the COVID-19 shock, aggregate business applications surged to historic
+highs and have continued rising through 2025, but the expansion is not
+uniform across sectors (Figure~\ref{fig:spotlight}).
+Sectors with higher AI exposure have pulled sharply away from the aggregate
+trend, while goods-producing sectors have lagged---a pattern visible in the
+raw data and confirmed by the cross-sectional scatter in
+Figure~\ref{fig:scatter} (as well as the regression in Table X).
+
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.88\textwidth]{fig_fred_motivation}
-  \caption{Business applications indexed to January 2020~$=100$ for selected
-           sectors. Source: U.S.\ Census Bureau via FRED
-           (\url{https://fred.stlouisfed.org/graph/?g=1UHD5}).
-           Shaded area indicates the COVID-19 recession (Feb--Apr 2020).}
-  \label{fig:fred}
+  \includegraphics[width=0.85\textwidth]{fig_scatter}
+  \caption{AI exposure versus change in business applications by sector.
+           Horizontal axis: normalised AI Industry Exposure (AIOE).
+           Vertical axis: percentage change from November~2022 to the
+           most recent month available.
+           Each dot is a 2-digit NAICS sector.}
+  \label{fig:scatter}
 \end{figure}
 
-Figure~\ref{fig:fred} offers a first look.
-After the COVID-19 shock, aggregate business applications surged to historic
-highs and have continued rising through 2025.
-But the expansion is not uniform.
-Professional and Business Services---among the most AI-exposed sectors by
-any measure---have pulled sharply away from the aggregate trend.
-Manufacturing and Construction, where tasks are less amenable to
-language-model automation, have lagged behind.
-This heterogeneity motivates the present paper.
 
-Lower entry costs, improved productivity for high-skilled tasks, and
-easier access to specialised knowledge may all reduce barriers to
-entrepreneurship in AI-exposed sectors \citep{brynjolfsson2018can}.
-Conversely, if AI primarily benefits large incumbents, competitive pressures
-could \emph{raise} barriers to entry.
-Distinguishing between these channels requires variation both across sectors
-and over time---variation the public release of ChatGPT conveniently provides.
+
+
 
 We use monthly sector-level business application counts from the Census Bureau
 Business Formation Statistics \citep{haltiwanger2020bfs} together with the
@@ -124,6 +124,16 @@ experienced a differential change in business formation after ChatGPT.
 
 
 \paragraph{Related literature.}
+
+The arrival of large language models---most visibly the public release of
+ChatGPT in November 2022---has revived interest in how general-purpose
+technologies reshape labour markets and firm dynamics
+\citep{felten2021occupational, fossen2024new}.
+Most of this debate focuses on \emph{workers}: which jobs are at risk, and
+for whom.
+But a parallel question may be equally consequential: does AI alter the
+incentives to \emph{start} a business?
+
 \citet{fossen2024new} examine AI adoption and self-employment at the
 individual level and find positive effects concentrated among high-skilled
 workers.
@@ -137,6 +147,15 @@ O*NET task measures with AI capability scores.
 its value for studying business dynamism and entry margins.
 \citet{brynjolfsson2018can} provide a conceptual framework for mapping
 task-level AI capabilities to occupational and industry outcomes.
+
+Lower entry costs, improved productivity for high-skilled tasks, and
+easier access to specialised knowledge may all reduce barriers to
+entrepreneurship in AI-exposed sectors \citep{brynjolfsson2018can}.
+Conversely, if AI primarily benefits large incumbents, competitive pressures
+could \emph{raise} barriers to entry.
+Distinguishing between these channels requires variation both across sectors
+and over time---variation the public release of ChatGPT conveniently provides.
+
 
 % -----------------------------------------------------------------------
 \section{Data}
@@ -164,23 +183,7 @@ sample, leaving 19 sectors.
 We define two treatment dates: November~2022 (public launch of ChatGPT)
 and May~2025 (widespread availability of agentic AI tools).
 
-Figure~\ref{fig:spotlight} plots the index for four selected sectors.
-The divergence between Professional Services and goods-producing sectors
-is visible from approximately 2021 and widens after November 2022,
-consistent with a role for AI in lowering barriers to entry specifically
-where tasks are more cognitively intensive.
 
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=0.88\textwidth]{fig_spotlight}
-  \caption{Business applications indexed to January 2020~$=100$.
-           Professional Services (NAICS~54), Total (all NAICS),
-           Manufacturing (NAICS~31--33), and Construction (NAICS~23).
-           Dashed vertical lines mark November 2022 (ChatGPT launch) and
-           May 2025 (agentic AI tools). Seasonally adjusted.
-           Source: Census Bureau BFS.}
-  \label{fig:spotlight}
-\end{figure}
 
 \subsection{AI Exposure}
 \label{sec:data_ai}
@@ -259,28 +262,26 @@ that is independent of the sector composition used in the main analysis.
 \subsection{Descriptive Evidence}
 \label{sec:results_desc}
 
-Figure~\ref{fig:desc} plots mean indexed business applications by AI
-exposure quartile.
-Prior to 2020 the four quartile groups track closely together, consistent
-with parallel pre-trends.
-After the COVID-19 surge and recovery, the top quartile (high AI exposure)
-diverges upward, while the bottom quartile remains below the aggregate
-trend.
-The gap is most pronounced from 2024 onwards, consistent with a gradual
-diffusion of AI tools into entrepreneurial activity rather than an
-immediate discrete response.
-
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=0.85\textwidth]{fig_desc}
-  \caption{Business applications by AI exposure quartile (Jan 2020 = 100).
-           Dashed vertical lines mark November 2022 (ChatGPT launch) and
-           May 2025 (agentic AI tools).}
-  \label{fig:desc}
-\end{figure}
-
 \subsection{Difference-in-Differences}
 \label{sec:results_did}
+
+Figure~\ref{fig:scatter} plots the percentage change in business
+applications from November~2022 to the most recent month available
+against each sector's AI exposure.
+
+
+
+Table~\ref{tab:scatter} formalises the scatter with a cross-sectional
+regression of the percentage change on normalised AIOE.
+Column~(1) is unweighted OLS; column~(2) weights observations by
+pre-period mean business applications, giving larger sectors proportionally
+more influence.
+The slope is positive and statistically significant in both specifications,
+and the weighted estimate is somewhat larger, indicating that the positive
+relationship between AI exposure and application growth is stronger
+among economically larger sectors.
+
+\input{tab_scatter.tex}
 
 Table~\ref{tab:did} reports the DiD estimates.
 Columns~(1)--(3) pool the entire post-November~2022 period into a single
@@ -292,6 +293,16 @@ specification, consistent with the event-study evidence that the effect
 builds gradually and becomes strongest toward the end of the sample.
 
 \input{tab_did.tex}
+
+To translate the coefficient into economically interpretable magnitudes,
+Table~\ref{tab:mfx} reports the implied percentage difference in business
+applications relative to a sector at the 25th percentile of AI exposure,
+evaluated at selected percentiles of the AIOE distribution.
+A sector at the median of AI exposure is estimated to have had
+[X]\% more applications than a P25 sector in the post-ChatGPT period;
+the gap widens to [X]\% at the 75th percentile and [X]\% at the 90th.
+
+\input{tab_mfx.tex}
 
 \subsection{Event Study}
 \label{sec:results_es}
