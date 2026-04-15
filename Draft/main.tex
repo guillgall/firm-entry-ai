@@ -50,8 +50,8 @@
 
 \begin{abstract}
   \noindent
-In this short paper I show that, following the release of ChatGPT in November 2022, firm entry increased in AI-exposed sectors, with effects becoming statistically significant only from 2025 onwards.
-Using monthly sector-level business application data from the Census Bureau Business Formation Statistics and a difference-in-differences design, I find that the effect is [X]\% larger for a sector at the 75th versus 25th percentile of AI exposure, and strengthens further after the emergence of agentic AI tools in 2025.
+In this short paper I show that, following the release of ChatGPT in November 2022, firm entry increased in AI-exposed sectors, with effects becoming persistently statistically significant from May~2024 --- approximately 18 months after the ChatGPT launch.
+Using monthly sector-level business application data from the Census Bureau Business Formation Statistics and a difference-in-differences design, I find that the effect is [X]\% larger for a sector at the 75th versus 25th percentile of AI exposure.
 The results suggest that AI lowers barriers to entry rather than entrenching incumbents.
 \end{abstract}
 
@@ -73,9 +73,8 @@ The results suggest that AI lowers barriers to entry rather than entrenching inc
   \caption{Business applications indexed to January 2020~$=100$.
            Professional Services (NAICS~54), Total (all NAICS),
            Manufacturing (NAICS~31--33), and Construction (NAICS~23).
-           Dashed vertical lines mark November 2022 (ChatGPT launch) and
-           May 2025 (agentic AI tools). Seasonally adjusted.
-           Source: Census Bureau BFS.}
+           Dashed vertical line marks November 2022 (ChatGPT launch).
+           Seasonally adjusted. Source: Census Bureau BFS.}
   \label{fig:spotlight}
 \end{figure}
 
@@ -180,8 +179,7 @@ as single combined codes rather than individual 2-digit breakdowns.
 Public Administration (NAICS~92) is present in the BFS but has no
 corresponding AIOE score and is therefore excluded from the regression
 sample, leaving 19 sectors.
-We define two treatment dates: November~2022 (public launch of ChatGPT)
-and May~2025 (widespread availability of agentic AI tools).
+The treatment date is November~2022, the public launch of ChatGPT.
 
 
 
@@ -284,13 +282,9 @@ among economically larger sectors.
 \input{tab_scatter.tex}
 
 Table~\ref{tab:did} reports the DiD estimates.
-Columns~(1)--(3) pool the entire post-November~2022 period into a single
-\textit{Post} indicator; column~(4) splits the post period into a ChatGPT
-window (November~2022--April~2025) and an agentic-AI window (May~2025
-onwards).
-The single-period estimates are attenuated relative to the two-period
-specification, consistent with the event-study evidence that the effect
-builds gradually and becomes strongest toward the end of the sample.
+All three columns pool the entire post-November~2022 period into a single
+\textit{Post} indicator, with columns~(1)--(3) using log business applications,
+the indexed BA outcome, and raw BA levels respectively.
 
 \input{tab_did.tex}
 
@@ -311,17 +305,36 @@ Figure~\ref{fig:es} presents the event-study coefficients.
 The pre-period estimates ($t < 0$) are small and statistically
 indistinguishable from zero, supporting the parallel-trends assumption.
 Post-launch, coefficients rise gradually before the 95\,\% confidence
-interval clears zero around 2025 ($t \approx +25$ to $+30$), indicating
-that the differential effect of AI exposure on business formation became
-statistically significant roughly two to three years after the ChatGPT
-launch.
+interval first clears zero at $t = +18$ (May~2024, approximately
+18 months after the ChatGPT launch) and remains above zero through the
+end of the sample, indicating a persistent differential effect of AI
+exposure on business formation.
 This pattern is consistent with a diffusion mechanism: entrepreneurs
 require time to learn the tools, identify viable business models, and
 translate that into actual EIN filings.
-A visible second inflection around $t = +30$ (May~2025, the emergence of
-widely available agentic AI tools) suggests a possible amplification of
-the initial shock, which the two-period DiD in column~(4) of
-Table~\ref{tab:did} is designed to capture.
+A visible second inflection around $t = +30$ (May~2025) is consistent with
+further acceleration as agentic AI tools became more widely available,
+though the gradual nature of that development makes a clean identification
+of a second event date difficult.
+
+Figure~\ref{fig:es} reveals a more nuanced two-phase pattern.
+A handful of coefficients are statistically significant in the first
+months immediately following the ChatGPT release ($t = 0$, $+1$, $+3$,
+$+4$, $+5$), suggesting an early, tentative response.
+These effects then recede into insignificance across roughly a year
+($t = +6$ through $t = +16$), before re-emerging persistently from
+$t = +17$ (April~2024, $p < 0.10$) and $t = +18$ (May~2024, $p < 0.05$)
+onward.
+From May~2024, every subsequent monthly coefficient is statistically
+significant at the 5\,\% level or better, and point estimates grow
+monotonically through the end of the sample, reaching $0.48$ at
+$t = +36$.
+The gap between the initial signal and the onset of persistent
+significance---roughly 12 months---is consistent with a learning-and-diffusion
+account: the early uptick reflects awareness and experimentation by
+first-movers, while the later, durable response reflects a broader
+population of entrepreneurs who required time to identify viable
+AI-enabled business models and convert that into EIN filings.
 
 \begin{figure}[H]
   \centering
@@ -329,8 +342,7 @@ Table~\ref{tab:did} is designed to capture.
   \caption{Event-study estimates: effect of AI exposure on
            $\log(\text{Business Applications})$ relative to
            November 2022 ($t = 0$). Shaded band is the 95\,\% confidence
-           interval based on sector-clustered standard errors.
-           The second dashed line marks May 2025 ($t = +30$, agentic AI).}
+           interval based on sector-clustered standard errors.}
   \label{fig:es}
 \end{figure}
 
@@ -391,8 +403,7 @@ realised entry rather than merely intent.
            Shaded bands are 95\,\% confidence intervals based on
            sector-clustered standard errors.
            All specifications include sector and month fixed effects.
-           Dashed vertical lines mark November 2022 ($t=0$) and
-           May 2025 ($t=+30$, agentic AI).}
+           Dashed vertical line marks November 2022 ($t=0$).}
   \label{fig:es_robust}
 \end{figure}
 
@@ -429,8 +440,7 @@ each quartile.
            territories.
            Q1 denotes the lowest-exposure quartile; Q4 the highest.
            Lines show simple cross-state means within each quartile.
-           Dashed vertical lines mark November~2022 (ChatGPT launch) and
-           May~2025 (agentic AI wave).}
+           Dashed vertical line marks November~2022 (ChatGPT launch).}
   \label{fig:desc_state}
 \end{figure}
 
@@ -471,7 +481,6 @@ the sector-level estimates remain the primary evidence.
            Shaded band is the 95\,\% confidence interval based on
            state-clustered standard errors (56 clusters).
            State and month fixed effects included.
-           The second dashed line marks May 2025 ($t = +30$, agentic AI).
            Coefficients are statistically insignificant throughout.}
   \label{fig:es_state}
 \end{figure}
@@ -494,8 +503,7 @@ across the four BFS series available at state level.
            Shaded bands are 95\,\% confidence intervals based on
            state-clustered standard errors (56 clusters).
            All specifications include state and month fixed effects.
-           Dashed vertical lines mark November~2022 ($t = 0$) and
-           May~2025 ($t = +30$, agentic AI).}
+           Dashed vertical line marks November~2022 ($t = 0$).}
   \label{fig:es_state_facet}
 \end{figure}
 

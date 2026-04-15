@@ -85,20 +85,6 @@ did_raw <- feols(
   cluster = ~naics2
 )
 
-# Two-period DiD: separate coefficients for ChatGPT (Nov 2022) and agentic AI (May 2025)
-df_reg2 <- df_reg |>
-  mutate(
-    post_chatgpt  = as.integer(date >= as.Date("2022-11-01") &
-                                 date <  as.Date("2025-05-01")),
-    post_agentic  = as.integer(date >= as.Date("2025-05-01"))
-  )
-
-did_two <- feols(
-  log_ba ~ post_chatgpt:aioe_norm + post_agentic:aioe_norm | naics2 + ym,
-  data    = df_reg2,
-  cluster = ~naics2
-)
-
 print(summary(did_main))
 
 # ---------------------------------------------------------------------------
@@ -156,13 +142,13 @@ message("Saved: Draft/tab_mfx.tex")
 # ---------------------------------------------------------------------------
 # 3. Event study: dynamic effects relative to Nov 2022
 # ---------------------------------------------------------------------------
-# Bin event-time: cap at ±24 months, omit t = -1 (reference period)
+# Bin event-time: cap at pre=-36 / post=42 (covers data through ~May 2026)
 df_es <- df_reg |>
-  filter(between(event_t, -36, 36)) |>
+  filter(between(event_t, -36, 42)) |>
   mutate(
     event_bin = case_when(
       event_t <= -36 ~ -36L,
-      event_t >=  36 ~  36L,
+      event_t >=  42 ~  42L,
       TRUE           ~ as.integer(event_t)
     ),
     event_bin = relevel(factor(event_bin), ref = "-1")
@@ -185,11 +171,73 @@ es_df <- tibble(
   t     = es_tidy$t,
   coef  = es_tidy$estimate,
   ci_lo = es_tidy$conf.low,
-  ci_hi = es_tidy$conf.high
+  ci_hi = es_tidy$conf.high,
+  pval  = es_tidy$p.value
 ) |>
   # Add the omitted reference period (t = -1, coef = 0)
-  bind_rows(tibble(t = -1, coef = 0, ci_lo = 0, ci_hi = 0)) |>
+  bind_rows(tibble(t = -1, coef = 0, ci_lo = 0, ci_hi = 0, pval = NA_real_)) |>
+  arrange(t) |>
+  mutate(
+    sig = case_when(
+      is.na(pval) ~ "Reference",
+      pval < 0.05 ~ "p < 0.05",
+      pval < 0.10 ~ "p < 0.10",
+      TRUE        ~ "n.s."
+    ),
+    sig = factor(sig, levels = c("p < 0.05", "p < 0.10", "n.s.", "Reference"))
+  )
+
+# ---------------------------------------------------------------------------
+# 3b. Timing of statistical significance
+# ---------------------------------------------------------------------------
+# Identify the first post-launch month at which the effect becomes statistically
+# significant, both in isolation and persistently (all subsequent months also sig).
+
+es_timing <- es_tidy |>
+  mutate(
+    sig_10 = p.value < 0.10,
+    sig_05 = p.value < 0.05
+  ) |>
+  filter(t >= 0) |>
   arrange(t)
+
+# First post-launch month significant at each level
+first_sig_10 <- es_timing |> filter(sig_10) |> slice(1)
+first_sig_05 <- es_timing |> filter(sig_05) |> slice(1)
+
+# Persistent onset: first t such that all subsequent months are also sig at 5%
+# (exclude the endpoint bin, which may be sparse due to sample truncation)
+max_t <- max(es_timing$t)
+
+persistent_onset_05 <- es_timing |>
+  filter(t < max_t) |>
+  mutate(
+    all_sig_from_here = map_lgl(t, function(t0) {
+      all(es_timing$sig_05[es_timing$t >= t0 & es_timing$t < max_t])
+    })
+  ) |>
+  filter(all_sig_from_here) |>
+  slice(1)
+
+event_to_date <- function(t_val) {
+  as.Date("2022-11-01") %m+% months(as.integer(t_val))
+}
+
+message("\n--- Timing of statistical significance (post-ChatGPT) ---")
+if (nrow(first_sig_10) > 0)
+  message("First significant at p<0.10:  t = ", first_sig_10$t,
+          "  (", format(event_to_date(first_sig_10$t), "%B %Y"), ")",
+          "  coef = ", round(first_sig_10$estimate, 3),
+          "  p = ", round(first_sig_10$p.value, 3))
+if (nrow(first_sig_05) > 0)
+  message("First significant at p<0.05:  t = ", first_sig_05$t,
+          "  (", format(event_to_date(first_sig_05$t), "%B %Y"), ")",
+          "  coef = ", round(first_sig_05$estimate, 3),
+          "  p = ", round(first_sig_05$p.value, 3))
+if (nrow(persistent_onset_05) > 0)
+  message("Persistent onset (p<0.05):    t = ", persistent_onset_05$t,
+          "  (", format(event_to_date(persistent_onset_05$t), "%B %Y"), ")")
+message("---------------------------------------------------------\n")
 
 # ---------------------------------------------------------------------------
 # 4. Figures
@@ -203,6 +251,11 @@ theme_paper <- theme_bw(base_size = 11) +
   )
 
 chatgpt_date  <- as.Date("2022-11-01")
+
+# Shared x-axis scale for all event-study plots: actual month-year labels
+es_t_breaks <- seq(-36, 42, by = 12)
+es_t_labels <- format(as.Date("2022-11-01") %m+% months(es_t_breaks), "%b %Y")
+scale_x_es  <- scale_x_continuous(breaks = es_t_breaks, labels = es_t_labels)
 agentic_date  <- as.Date("2025-05-01")   # agentic AI tools (t ≈ +30 from ChatGPT)
 
 ## 4a. Sector spotlight: Professional Services vs Manufacturing vs Construction ----
@@ -276,13 +329,8 @@ fig_spotlight <- ggplot(spotlight_df,
   geom_line() +
   geom_vline(xintercept = chatgpt_date, linetype = "dashed",
              colour = "grey40", linewidth = 0.5) +
-  geom_vline(xintercept = agentic_date, linetype = "dashed",
-             colour = "grey40", linewidth = 0.5) +
   annotate("text", x = chatgpt_date + 45, y = Inf,
            label = "ChatGPT\nlaunch", vjust = 1.4, hjust = 0, size = 2.8,
-           colour = "grey30") +
-  annotate("text", x = agentic_date + 45, y = Inf,
-           label = "Agentic\nAI", vjust = 1.4, hjust = 0, size = 2.8,
            colour = "grey30") +
   scale_colour_manual(values = sector_colours, name = NULL) +
   scale_linewidth_manual(
@@ -319,12 +367,8 @@ fig_desc <- df |>
   geom_line(linewidth = 0.7) +
   geom_vline(xintercept = chatgpt_date, linetype = "dashed",
              colour = "black", linewidth = 0.6) +
-  geom_vline(xintercept = agentic_date, linetype = "dashed",
-             colour = "black", linewidth = 0.6) +
   annotate("text", x = chatgpt_date + 30, y = Inf,
            label = "ChatGPT\nlaunch", vjust = 1.3, hjust = 0, size = 3) +
-  annotate("text", x = agentic_date + 30, y = Inf,
-           label = "Agentic\nAI", vjust = 1.3, hjust = 0, size = 3) +
   scale_colour_brewer(palette = "RdYlBu", direction = -1,
                       name = "AI Exposure Quartile") +
   labs(
@@ -339,23 +383,29 @@ ggsave(file.path(ROOT, "Draft", "fig_desc.pdf"), fig_desc,
 message("Saved: Draft/fig_desc.pdf")
 
 ## 4b. Event-study plot -----------------------------------------------
+sig_colours <- c(
+  "p < 0.05"  = "#2ca02c",   # green
+  "p < 0.10"  = "#98df8a",   # light green
+  "n.s."      = "#d62728",   # red
+  "Reference" = "grey50"
+)
+
 fig_es <- ggplot(es_df, aes(x = t, y = coef)) +
   geom_hline(yintercept = 0, linetype = "dashed", colour = "grey50") +
-  geom_vline(xintercept = 0,  linetype = "dashed", colour = "black",
+  geom_vline(xintercept = 0, linetype = "dashed", colour = "black",
              linewidth = 0.5) +
-  geom_vline(xintercept = 30, linetype = "dashed", colour = "grey40",
-             linewidth = 0.5) +
-  annotate("text", x = 30.5, y = Inf, label = "Agentic\nAI",
-           vjust = 1.4, hjust = 0, size = 2.8, colour = "grey30") +
-  geom_ribbon(aes(ymin = ci_lo, ymax = ci_hi), alpha = 0.2, fill = "steelblue") +
-  geom_line(colour = "steelblue", linewidth = 0.8) +
-  geom_point(colour = "steelblue", size = 1.5) +
+  geom_ribbon(aes(ymin = ci_lo, ymax = ci_hi), alpha = 0.15, fill = "grey70") +
+  geom_line(colour = "grey40", linewidth = 0.6) +
+  geom_point(aes(colour = sig), size = 2) +
+  scale_colour_manual(values = sig_colours, name = NULL) +
+  scale_x_es +
   labs(
     title = "Event Study: Effect of AI Exposure on log(Business Applications)",
-    x     = "Months relative to ChatGPT launch (Nov 2022)",
+    x     = NULL,
     y     = "Coefficient on AI Exposure"
   ) +
-  theme_paper
+  theme_paper +
+  theme(legend.position = "bottom")
 
 ggsave(file.path(ROOT, "Draft", "fig_event_study.pdf"), fig_es,
        width = 7, height = 4, device = "pdf")
@@ -369,11 +419,11 @@ run_es <- function(outcome_col, data, use_log = TRUE) {
     filter(!is.na(.data[[outcome_col]]), .data[[outcome_col]] > 0) |>
     mutate(log_outcome = if (use_log) log(.data[[outcome_col]])
                          else .data[[outcome_col]]) |>
-    filter(between(event_t, -36, 36)) |>
+    filter(between(event_t, -36, 42)) |>
     mutate(
       event_bin = case_when(
         event_t <= -36 ~ -36L,
-        event_t >=  36 ~  36L,
+        event_t >=  42 ~  42L,
         TRUE           ~ as.integer(event_t)
       )
     )
@@ -408,9 +458,18 @@ run_es <- function(outcome_col, data, use_log = TRUE) {
   out <- tidy(mod, conf.int = TRUE) |>
     filter(str_detect(term, "event_bin")) |>
     mutate(t = as.numeric(str_extract(term, "-?\\d+"))) |>
-    select(t, coef = estimate, ci_lo = conf.low, ci_hi = conf.high) |>
-    bind_rows(tibble(t = ref_bin * 1.0, coef = 0, ci_lo = 0, ci_hi = 0)) |>
-    arrange(t)
+    select(t, coef = estimate, ci_lo = conf.low, ci_hi = conf.high, pval = p.value) |>
+    bind_rows(tibble(t = ref_bin * 1.0, coef = 0, ci_lo = 0, ci_hi = 0, pval = NA_real_)) |>
+    arrange(t) |>
+    mutate(
+      sig = case_when(
+        is.na(pval) ~ "Reference",
+        pval < 0.05 ~ "p < 0.05",
+        pval < 0.10 ~ "p < 0.10",
+        TRUE        ~ "n.s."
+      ),
+      sig = factor(sig, levels = c("p < 0.05", "p < 0.10", "n.s.", "Reference"))
+    )
 
   out
 }
@@ -445,26 +504,26 @@ if (nrow(es_facet_list) > 0) {
     geom_hline(yintercept = 0, linetype = "dashed", colour = "grey50") +
     geom_vline(xintercept =  0, linetype = "dashed", colour = "black",
                linewidth = 0.45) +
-    geom_vline(xintercept = 30, linetype = "dashed", colour = "grey50",
-               linewidth = 0.45) +
     geom_ribbon(aes(ymin = ci_lo, ymax = ci_hi),
-                alpha = 0.18, fill = "steelblue") +
-    geom_line(colour = "steelblue", linewidth = 0.7) +
-    geom_point(colour = "steelblue", size = 1.2) +
+                alpha = 0.15, fill = "grey70") +
+    geom_line(colour = "grey40", linewidth = 0.6) +
+    geom_point(aes(colour = sig), size = 1.2) +
+    scale_colour_manual(values = sig_colours, name = NULL) +
+    scale_x_es +
     facet_wrap(~ label, ncol = 3, scales = "free_y") +
-    annotate("text", x = 30.5, y = Inf, label = "Agentic AI",
-             vjust = 1.4, hjust = 0, size = 2.4, colour = "grey40") +
     labs(
       title = "Event Study: AI Exposure \u00d7 Post — Robustness across BFS Series",
       subtitle = "Outcome: log(series). Sector + month FE. 95% CI, SEs clustered by NAICS-2.",
-      x = "Months relative to ChatGPT launch (Nov 2022)",
+      x = NULL,
       y = "Coefficient on AI Exposure"
     ) +
     theme_paper +
     theme(
       strip.background = element_rect(fill = "grey93", colour = NA),
       strip.text       = element_text(size = 8.5, face = "bold"),
-      plot.subtitle    = element_text(size = 8, colour = "grey40")
+      plot.subtitle    = element_text(size = 8, colour = "grey40"),
+      legend.position  = "bottom",
+      axis.text.x      = element_text(angle = 45, hjust = 1, size = 7)
     )
 
   ggsave(file.path(ROOT, "Draft", "fig_es_robust.pdf"), fig_es_robust,
@@ -521,10 +580,9 @@ fix_tex_table <- function(path, label) {
 }
 
 models <- list(
-  "(1) log(BA)"    = did_main,
-  "(2) BA Index"   = did_idx,
-  "(3) BA Level"   = did_raw,
-  "(4) Two-period" = did_two
+  "(1) log(BA)"  = did_main,
+  "(2) BA Index" = did_idx,
+  "(3) BA Level" = did_raw
 )
 
 modelsummary(
@@ -533,24 +591,32 @@ modelsummary(
   stars      = c("*" = 0.10, "**" = 0.05, "***" = 0.01),
   gof_map    = gof_map_sector,
   coef_map   = c(
-    "post:aioe_norm"         = "Post$_{\\text{ChatGPT}}$ $\\times$ AI Exposure",
-    "post_chatgpt:aioe_norm" = "Post$_{\\text{ChatGPT}}$ $\\times$ AI Exposure",
-    "post_agentic:aioe_norm" = "Post$_{\\text{Agentic}}$ $\\times$ AI Exposure"
+    "post:aioe_norm" = "Post $\\times$ AI Exposure"
   ),
   title      = "Difference-in-Differences Estimates",
-  notes      = paste("Standard errors clustered by 2-digit NAICS sector.",
-                     "Post$_{\\text{ChatGPT}}$: Nov 2022 -- Apr 2025.",
-                     "Post$_{\\text{Agentic}}$: May 2025 onwards."),
+  notes      = "Standard errors clustered by 2-digit NAICS sector.",
   escape     = FALSE
 )
 message("Saved: Draft/tab_did.tex")
 
 fix_tex_table(file.path(ROOT, "Draft", "tab_did.tex"), "tab:did")
 
+# Build coef_map: replace "event_bin = N × aioe_norm" with "Mon YYYY (t = N)"
+es_coef_names <- names(coef(es_model))
+es_coef_map <- setNames(
+  sapply(es_coef_names, function(nm) {
+    t_val    <- as.integer(str_extract(nm, "-?\\d+"))
+    cal_date <- as.Date("2022-11-01") %m+% months(t_val)
+    paste0(format(cal_date, "%b %Y"), " ($t = ", t_val, "$)")
+  }),
+  es_coef_names
+)
+
 modelsummary(
   list("Event Study" = es_model),
   output   = file.path(ROOT, "Draft", "tab_event_study.tex"),
   stars    = c("*" = 0.10, "**" = 0.05, "***" = 0.01),
+  coef_map = es_coef_map,
   title    = "Event-Study Estimates",
   notes    = "Standard errors clustered by 2-digit NAICS sector.",
   escape   = FALSE

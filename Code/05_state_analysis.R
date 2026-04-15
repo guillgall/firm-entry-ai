@@ -96,11 +96,11 @@ print(summary(did_state_main))
 # 3. Event study: state-level
 # ---------------------------------------------------------------------------
 df_ses <- df_sreg |>
-  filter(between(event_t, -36, 36)) |>
+  filter(between(event_t, -36, 42)) |>
   mutate(
     event_bin = case_when(
       event_t <= -36 ~ -36L,
-      event_t >=  36 ~  36L,
+      event_t >=  42 ~  42L,
       TRUE           ~ as.integer(event_t)
     ),
     event_bin = relevel(factor(event_bin), ref = "-1")
@@ -118,6 +118,11 @@ es_state <- feols(
 chatgpt_date <- as.Date("2022-11-01")
 agentic_date <- as.Date("2025-05-01")
 
+# Shared x-axis scale for all event-study plots: actual month-year labels
+es_t_breaks <- seq(-36, 42, by = 12)
+es_t_labels <- format(as.Date("2022-11-01") %m+% months(es_t_breaks), "%b %Y")
+scale_x_es  <- scale_x_continuous(breaks = es_t_breaks, labels = es_t_labels)
+
 fig_desc_state <- df_state |>
   filter(!is.na(ba_idx), !is.na(aige_quartile)) |>
   mutate(
@@ -131,12 +136,8 @@ fig_desc_state <- df_state |>
   geom_line(linewidth = 0.7) +
   geom_vline(xintercept = chatgpt_date, linetype = "dashed",
              colour = "black", linewidth = 0.6) +
-  geom_vline(xintercept = agentic_date, linetype = "dashed",
-             colour = "black", linewidth = 0.6) +
   annotate("text", x = chatgpt_date + 30, y = Inf,
            label = "ChatGPT\nlaunch", vjust = 1.3, hjust = 0, size = 3) +
-  annotate("text", x = agentic_date + 30, y = Inf,
-           label = "Agentic\nAI", vjust = 1.3, hjust = 0, size = 3) +
   scale_colour_brewer(palette = "RdYlBu", direction = -1,
                       name = "AI Geographic Exposure Quartile") +
   scale_x_date(date_breaks = "2 years", date_labels = "%Y") +
@@ -153,13 +154,29 @@ ggsave(file.path(ROOT, "Draft", "fig_desc_state.pdf"), fig_desc_state,
        width = 7, height = 4, device = "pdf")
 message("Saved: Draft/fig_desc_state.pdf")
 
+sig_colours <- c(
+  "p < 0.05"  = "#2ca02c",
+  "p < 0.10"  = "#98df8a",
+  "n.s."      = "#d62728",
+  "Reference" = "grey50"
+)
+
 # Extract coefficients
 es_state_df <- tidy(es_state, conf.int = TRUE) |>
   filter(str_detect(term, "event_bin")) |>
   mutate(t = as.numeric(str_extract(term, "-?\\d+"))) |>
-  select(t, coef = estimate, ci_lo = conf.low, ci_hi = conf.high) |>
-  bind_rows(tibble(t = -1, coef = 0, ci_lo = 0, ci_hi = 0)) |>
-  arrange(t)
+  select(t, coef = estimate, ci_lo = conf.low, ci_hi = conf.high, pval = p.value) |>
+  bind_rows(tibble(t = -1, coef = 0, ci_lo = 0, ci_hi = 0, pval = NA_real_)) |>
+  arrange(t) |>
+  mutate(
+    sig = case_when(
+      is.na(pval) ~ "Reference",
+      pval < 0.05 ~ "p < 0.05",
+      pval < 0.10 ~ "p < 0.10",
+      TRUE        ~ "n.s."
+    ),
+    sig = factor(sig, levels = c("p < 0.05", "p < 0.10", "n.s.", "Reference"))
+  )
 
 theme_paper <- theme_bw(base_size = 11) +
   theme(
@@ -172,22 +189,23 @@ fig_es_state <- ggplot(es_state_df, aes(x = t, y = coef)) +
   geom_hline(yintercept = 0, linetype = "dashed", colour = "grey50") +
   geom_vline(xintercept =  0, linetype = "dashed", colour = "black",
              linewidth = 0.5) +
-  geom_vline(xintercept = 30, linetype = "dashed", colour = "grey40",
-             linewidth = 0.5) +
-  annotate("text", x = 30.5, y = Inf, label = "Agentic\nAI",
-           vjust = 1.4, hjust = 0, size = 2.8, colour = "grey30") +
   geom_ribbon(aes(ymin = ci_lo, ymax = ci_hi),
-              alpha = 0.2, fill = "darkorange") +
-  geom_line(colour = "darkorange", linewidth = 0.8) +
-  geom_point(colour = "darkorange", size = 1.5) +
+              alpha = 0.15, fill = "grey70") +
+  geom_line(colour = "grey40", linewidth = 0.6) +
+  geom_point(aes(colour = sig), size = 1.5) +
+  scale_colour_manual(values = sig_colours, name = NULL) +
+  scale_x_es +
   labs(
     title    = "Event Study: Effect of AI Exposure on log(Business Applications) - State Level",
     subtitle = "State + month FE. 95% CI, SEs clustered by state (n = 56).",
-    x        = "Months relative to ChatGPT launch (Nov 2022)",
+    x        = NULL,
     y        = "Coefficient on AI Geographic Exposure (AIGE)"
   ) +
   theme_paper +
-  theme(plot.subtitle = element_text(size = 8, colour = "grey40"))
+  theme(
+    plot.subtitle   = element_text(size = 8, colour = "grey40"),
+    legend.position = "bottom"
+  )
 
 ggsave(file.path(ROOT, "Draft", "fig_es_state.pdf"), fig_es_state,
        width = 7, height = 4, device = "pdf")
@@ -215,11 +233,11 @@ run_es_state <- function(outcome_col, df_base) {
       log_y     = log(.data[[outcome_col]]),
       event_bin = as.integer(case_when(
         event_t <= -36L ~ -36L,
-        event_t >=  36L ~  36L,
+        event_t >=  42L ~  42L,
         TRUE            ~ as.integer(event_t)
       ))
     ) |>
-    filter(between(event_t, -36, 36))
+    filter(between(event_t, -36, 42))
 
   n_post <- df_use |> filter(event_t >= 0) |> nrow()
   if (n_post < 20) {
@@ -236,9 +254,18 @@ run_es_state <- function(outcome_col, df_base) {
     tidy(mod, conf.int = TRUE) |>
       filter(str_detect(term, "event_bin")) |>
       mutate(t = as.integer(str_extract(term, "-?\\d+"))) |>
-      select(t, coef = estimate, ci_lo = conf.low, ci_hi = conf.high) |>
-      bind_rows(tibble(t = -1L, coef = 0, ci_lo = 0, ci_hi = 0)) |>
-      arrange(t)
+      select(t, coef = estimate, ci_lo = conf.low, ci_hi = conf.high, pval = p.value) |>
+      bind_rows(tibble(t = -1L, coef = 0, ci_lo = 0, ci_hi = 0, pval = NA_real_)) |>
+      arrange(t) |>
+      mutate(
+        sig = case_when(
+          is.na(pval) ~ "Reference",
+          pval < 0.05 ~ "p < 0.05",
+          pval < 0.10 ~ "p < 0.10",
+          TRUE        ~ "n.s."
+        ),
+        sig = factor(sig, levels = c("p < 0.05", "p < 0.10", "n.s.", "Reference"))
+      )
   }, error = function(e) {
     message("  ", outcome_col, " state ES failed: ", conditionMessage(e))
     NULL
@@ -268,24 +295,26 @@ fig_es_state_facet <- ggplot(es_state_series, aes(x = t, y = coef)) +
   geom_hline(yintercept = 0, linetype = "dashed", colour = "grey50") +
   geom_vline(xintercept =  0, linetype = "dashed", colour = "black",
              linewidth = 0.5) +
-  geom_vline(xintercept = 30, linetype = "dashed", colour = "grey40",
-             linewidth = 0.5) +
   geom_ribbon(aes(ymin = ci_lo, ymax = ci_hi),
-              alpha = 0.2, fill = "steelblue") +
-  geom_line(colour = "steelblue", linewidth = 0.7) +
-  geom_point(colour = "steelblue", size = 1.2) +
+              alpha = 0.15, fill = "grey70") +
+  geom_line(colour = "grey40", linewidth = 0.6) +
+  geom_point(aes(colour = sig), size = 1.2) +
+  scale_colour_manual(values = sig_colours, name = NULL) +
+  scale_x_es +
   facet_wrap(~label, ncol = 2, scales = "free_y") +
   labs(
     title    = "State Event Study: Effect of AIGE on log(Business Applications)",
     subtitle = "Each panel: log(series) ~ i(event_bin, AIGE) | state + month FE. 95% CI, SEs clustered by state.",
-    x        = "Months relative to ChatGPT launch (Nov 2022)",
+    x        = NULL,
     y        = "Coefficient on AI Geographic Exposure (AIGE)"
   ) +
   theme_paper +
   theme(
     plot.subtitle    = element_text(size = 8, colour = "grey40"),
     strip.background = element_rect(fill = "grey92", colour = NA),
-    strip.text       = element_text(face = "bold", size = 9)
+    strip.text       = element_text(face = "bold", size = 9),
+    legend.position  = "bottom",
+    axis.text.x      = element_text(angle = 45, hjust = 1, size = 7)
   )
 
 ggsave(file.path(ROOT, "Draft", "fig_es_state_facet.pdf"),

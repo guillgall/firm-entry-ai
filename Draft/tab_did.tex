@@ -4,24 +4,24 @@
 caption={Difference-in-Differences Estimates},
 label={tab:did},
 note{}={* p \num{< 0.1}, ** p \num{< 0.05}, *** p \num{< 0.01}},
-note{ }={Standard errors clustered by 2-digit NAICS sector. Post$_{\text{ChatGPT}}$: Nov 2022 -- Apr 2025. Post$_{\text{Agentic}}$: May 2025 onwards.},
+note{ }={Standard errors clustered by 2-digit NAICS sector.},
 ]                     %% tabularray outer close
 {                     %% tabularray inner open
 width=\linewidth,
-colspec={Q[]Q[]Q[]Q[]Q[]},
-hline{2}={1-5}{solid, black, 0.05em},
-hline{4}={1-5}{solid, black, 0.05em},
-hline{1}={1-5}{solid, black, 0.08em},
-hline{8}={1-5}{solid, black, 0.08em},
-column{2-5}={}{halign=c},
+colspec={Q[]Q[]Q[]Q[]},
+hline{2}={1-4}{solid, black, 0.05em},
+hline{4}={1-4}{solid, black, 0.05em},
+hline{1}={1-4}{solid, black, 0.08em},
+hline{8}={1-4}{solid, black, 0.08em},
+column{2-4}={}{halign=c},
 column{1}={}{halign=l},
 }                     %% tabularray inner close
-& (1) log(BA) & (2) BA Index & (3) BA Level & (4) Two-period \\
-Post$_{\text{ChatGPT}}$ $\times$ AI Exposure & \num{0.209} & \num{30.151} & \num{-1607.456} & \num{0.121} \\
-& (\num{0.227}) & (\num{30.712}) & (\num{7157.107}) & (\num{0.214}) \\
-Observations & \num{4959} & \num{4959} & \num{4959} & \num{4959} \\
-R$^2$ & \num{0.982} & \num{0.690} & \num{0.834} & \num{0.983} \\
-Sector FE & $\checkmark$ & $\checkmark$ & $\checkmark$ & $\checkmark$ \\
-Month FE & $\checkmark$ & $\checkmark$ & $\checkmark$ & $\checkmark$ \\
+& (1) log(BA) & (2) BA Index & (3) BA Level \\
+Post $\times$ AI Exposure & \num{0.209} & \num{30.151} & \num{-1607.456} \\
+& (\num{0.227}) & (\num{30.712}) & (\num{7157.107}) \\
+Observations & \num{4959} & \num{4959} & \num{4959} \\
+R$^2$ & \num{0.982} & \num{0.690} & \num{0.834} \\
+Sector FE & $\checkmark$ & $\checkmark$ & $\checkmark$ \\
+Month FE & $\checkmark$ & $\checkmark$ & $\checkmark$ \\
 \end{talltblr}
 \end{table}
