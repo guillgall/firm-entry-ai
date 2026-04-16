@@ -118,6 +118,13 @@ es_state <- feols(
 chatgpt_date <- as.Date("2022-11-01")
 agentic_date <- as.Date("2025-05-01")
 
+theme_paper <- theme_bw(base_size = 11) +
+  theme(
+    panel.grid.minor = element_blank(),
+    legend.position  = "bottom",
+    plot.title       = element_text(face = "bold", size = 11)
+  )
+
 # Shared x-axis scale for all event-study plots: actual month-year labels
 es_t_breaks <- seq(-36, 42, by = 12)
 es_t_labels <- format(as.Date("2022-11-01") %m+% months(es_t_breaks), "%b %Y")
@@ -176,13 +183,6 @@ es_state_df <- tidy(es_state, conf.int = TRUE) |>
       TRUE        ~ "n.s."
     ),
     sig = factor(sig, levels = c("p < 0.05", "p < 0.10", "n.s.", "Reference"))
-  )
-
-theme_paper <- theme_bw(base_size = 11) +
-  theme(
-    panel.grid.minor = element_blank(),
-    legend.position  = "bottom",
-    plot.title       = element_text(face = "bold", size = 11)
   )
 
 fig_es_state <- ggplot(es_state_df, aes(x = t, y = coef)) +

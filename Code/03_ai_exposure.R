@@ -11,6 +11,7 @@
 library(tidyverse)
 library(httr)
 library(readxl)
+library(haven)
 library(here)
 
 # State name → BFS abbreviation crosswalk (matches geo codes in bfs_monthly.csv)
@@ -139,7 +140,63 @@ message("NAICS column : ", naics_col)
 message("AIIE column  : ", aiie_col)
 
 # ---------------------------------------------------------------------------
-# 5. Clean and aggregate to 2-digit NAICS
+# 5. Download OES employment by 4-digit NAICS from Felten et al.'s own repo
+# This is the same file they used to construct the AIIE, so NAICS codes are
+# guaranteed to match Appendix B.
+# ---------------------------------------------------------------------------
+OES_URL      <- paste0("https://raw.githubusercontent.com/AIOE-Data/AIOE/",
+                       "main/Input/oes_4dig_naics.zip")
+oes_zip_path <- file.path(ROOT, "Data", "Input", "oes_4dig_naics.zip")
+oes_dir      <- file.path(ROOT, "Data", "Input", "oes_4dig_naics")
+
+if (!dir.exists(oes_dir)) {
+  if (!file.exists(oes_zip_path)) {
+    message("Downloading OES 4-digit NAICS employment from AIOE repo...")
+    resp_oes <- GET(OES_URL,
+                    write_disk(oes_zip_path, overwrite = TRUE),
+                    progress(), timeout(120))
+    if (http_error(resp_oes))
+      stop("OES download failed (HTTP ", status_code(resp_oes), ").")
+    message("Saved: ", oes_zip_path)
+  }
+  unzip(oes_zip_path, exdir = oes_dir)
+}
+
+oes_file <- list.files(oes_dir, pattern = "\\.(csv|xlsx?|dta)$",
+                       full.names = TRUE, recursive = TRUE)[1]
+message("Reading OES file: ", oes_file)
+
+oes_raw <- if (str_detect(oes_file, "\\.csv$")) {
+  read_csv(oes_file, show_col_types = FALSE)
+} else if (str_detect(oes_file, "\\.dta$")) {
+  read_dta(oes_file)
+} else {
+  read_excel(oes_file)
+}
+
+message("OES dims: ", nrow(oes_raw), " x ", ncol(oes_raw))
+message("OES columns: ", paste(names(oes_raw), collapse = ", "))
+
+# Extract 4-digit NAICS and total employment.
+# OES NAICS codes are 6-digit strings (e.g., "113300"); first 4 chars = 4-digit.
+# occ_code "00-0000" = all-occupations total for that industry.
+# Use all ownership codes (own_code) to match Felten et al.'s industry totals.
+oes_emp <- oes_raw |>
+  rename_with(tolower) |>
+  filter(occ_code == "00-0000") |>           # all-occupations industry total
+  mutate(
+    naics4 = substr(as.character(naics), 1, 4),
+    emp    = suppressWarnings(as.numeric(tot_emp))
+  ) |>
+  filter(!is.na(emp), nchar(naics4) == 4) |>
+  group_by(naics4) |>
+  summarise(emp = sum(emp, na.rm = TRUE), .groups = "drop") |>
+  mutate(naics2 = str_pad(substr(naics4, 1, 2), 2, pad = "0"))
+
+message("OES rows (industry totals): ", nrow(oes_emp))
+
+# ---------------------------------------------------------------------------
+# 5b. Clean AIIE and merge employment weights
 # ---------------------------------------------------------------------------
 ai_exp <- raw |>
   rename(naics_raw = all_of(naics_col),
@@ -148,26 +205,41 @@ ai_exp <- raw |>
     naics_raw = as.character(naics_raw),
     # Strip trailing text / dashes (some cells: "11-Agriculture")
     naics_num = str_extract(naics_raw, "^\\d+"),
+    naics4    = str_pad(str_extract(naics_num, "^\\d{1,4}"), 4, pad = "0"),
     naics2    = str_pad(substr(naics_num, 1, 2), 2, pad = "0"),
     aiie      = as.numeric(aiie)
   ) |>
   filter(!is.na(aiie), !is.na(naics2),
-         naics2 != "NA", naics2 != "00")
+         naics2 != "NA", naics2 != "00") |>
+  left_join(oes_emp |> select(naics4, emp), by = "naics4")
 
 message("Rows after filter: ", nrow(ai_exp))
 message("Unique 2-digit NAICS: ", n_distinct(ai_exp$naics2))
+message("Rows with OES employment weight: ", sum(!is.na(ai_exp$emp)))
 
-# Aggregate to 2-digit (mean across 4-digit sub-industries)
+# Aggregate to 2-digit using 2019 OES employment weights (consistent with
+# Felten et al., who use 2019 employment to construct AIIE at 4-digit NAICS).
+# Fall back to unweighted mean for any 4-digit codes not matched in OES.
 ai_exp2 <- ai_exp |>
   group_by(naics2) |>
-  summarise(aiie = mean(aiie, na.rm = TRUE), .groups = "drop")
+  summarise(
+    aiie = if (any(!is.na(emp)))
+             weighted.mean(aiie, w = replace_na(emp, 0), na.rm = TRUE)
+           else
+             mean(aiie, na.rm = TRUE),
+    .groups = "drop"
+  )
 
 # ---------------------------------------------------------------------------
-# 5b. Add BFS combined-sector codes
+# 5c. Add BFS combined-sector codes
 # The BFS aggregates Manufacturing (31-33), Retail (44-45), and
 # Transportation & Warehousing (48-49) into single codes MNF, RET, TW.
-# Create matching AIOE entries as employment-unweighted averages of
-# the constituent 2-digit sectors (best approximation without employment data).
+# Use employment-weighted averages of the constituent 2-digit AIIE scores,
+# weighting by total 2019 OES employment within each 2-digit sector.
+oes_naics2_emp <- oes_emp |>
+  group_by(naics2) |>
+  summarise(emp2 = sum(emp, na.rm = TRUE), .groups = "drop")
+
 combined_sectors <- tribble(
   ~naics2, ~components,
   "MNF",   c("31", "32", "33"),
@@ -178,15 +250,21 @@ combined_sectors <- tribble(
 combined_aioe <- combined_sectors |>
   mutate(
     aiie = map_dbl(components, ~ {
-      vals <- ai_exp2$aiie[ai_exp2$naics2 %in% .x]
-      if (length(vals) == 0) NA_real_ else mean(vals, na.rm = TRUE)
+      sub <- ai_exp2 |>
+        filter(naics2 %in% .x) |>
+        left_join(oes_naics2_emp, by = "naics2")
+      if (nrow(sub) == 0 || all(is.na(sub$emp2))) {
+        mean(sub$aiie, na.rm = TRUE)
+      } else {
+        weighted.mean(sub$aiie, w = replace_na(sub$emp2, 0), na.rm = TRUE)
+      }
     })
   ) |>
   select(naics2, aiie) |>
   filter(!is.na(aiie))
 
 ai_exp2 <- bind_rows(ai_exp2, combined_aioe)
-message("Added combined-sector codes: ",
+message("Added combined-sector codes (employment-weighted): ",
         paste(combined_aioe$naics2, collapse = ", "))
 
 # ---------------------------------------------------------------------------

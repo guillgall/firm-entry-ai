@@ -39,7 +39,7 @@
 \title{Firm Entry and AI:\\
        Evidence from US Industries}
 \author{Guillermo Gallacher%
-       \thanks{\href{mailto:guillermogallacher@gmail.com}{guillermogallacher@gmail.com}. Indeed Hiring Lab and UCEMA.}}
+       \thanks{Email: \href{mailto:guillermogallacher@gmail.com}{guillermogallacher@gmail.com}. Web: \href{https://guillgall.github.io/}{guillgall.github.io}.}}
 \date{\today \\ \medskip \small Preliminary and incomplete. Comments welcome.}
 
 % -----------------------------------------------------------------------
@@ -54,11 +54,6 @@ In this short paper I show that, following the release of ChatGPT in November 20
 Using monthly sector-level business application data from the Census Bureau Business Formation Statistics and a difference-in-differences design, I find that the effect is [X]\% larger for a sector at the 75th versus 25th percentile of AI exposure.
 The results suggest that AI lowers barriers to entry rather than entrenching incumbents.
 \end{abstract}
-
-\noindent\textbf{Keywords:} business formation, artificial intelligence,
-  AI exposure, difference-in-differences, ChatGPT
-
-\noindent\textbf{JEL codes:} L26, O33, J24, M13
 
 \clearpage
 
@@ -188,8 +183,10 @@ The treatment date is November~2022, the public launch of ChatGPT.
 
 Following \citet{felten2021occupational}, we use the AI Industry Exposure
 (AIIE) index, which maps occupational AI exposure scores to 4-digit NAICS
-industries through BLS employment weights and aggregates to 2-digit NAICS
-by employment-weighted averaging.
+industries through BLS employment weights.
+We aggregate to 2-digit NAICS using employment-weighted averaging,
+with 2019 BLS OES industry employment counts as weights, consistent
+with Felten et al.'s own use of 2019 employment in constructing the index.\footnote{Results are unchanged when using an unweighted mean across 4-digit sub-industries.}
 The index is constructed from 10 AI application domains benchmarked against
 O*NET task descriptions and captures the degree to which a sector's
 occupational mix is susceptible to AI automation or augmentation.
