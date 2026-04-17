@@ -40,7 +40,7 @@
        Evidence from US Industries}
 \author{Guillermo Gallacher%
        \thanks{Email: \href{mailto:guillermogallacher@gmail.com}{guillermogallacher@gmail.com}. Web: \href{https://guillgall.github.io/}{guillgall.github.io}.}}
-\date{\today \\ \medskip \small Preliminary and incomplete. Comments welcome.}
+\date{\today}
 
 % -----------------------------------------------------------------------
 \begin{document}
@@ -228,8 +228,11 @@ significant at the 5\,\% level or better, and point estimates grow
 monotonically through the end of the sample, reaching $0.48$ at
 $t = +36$.
 
-\subsection{Robustness Checks}
+\section{Robustness Checks}
 \label{sec:results_robust}
+
+\subsection{Alternative Business Applications Metrics}
+\label{sec:ba_robust}
 
 We probe robustness by substituting the outcome with the full suite of available BFS series spanning the formation funnel. 
 
@@ -256,6 +259,42 @@ window regardless of which outcome is used.
 \begin{landscape}
 \input{tab_robust.tex}
 \end{landscape}
+
+\subsection{3-digit NAICS}
+\label{sec:3digit_robust}
+
+Figure~\ref{fig:scatter_naics3} replicates the motivating scatter at the
+finer 3-digit NAICS level, comparing mean weekly business applications in
+November~2022 with November~2025 across 75 sectors.
+The positive cross-sectional gradient visible at the 2-digit level
+(Figure~\ref{fig:scatter}) persists at higher disaggregation, and the
+bubble sizes — proportional to pre-period application volume — make clear
+that larger sectors tend to sit higher on the fitted line.
+Table~\ref{tab:scatter_naics3} formalises this.
+The unweighted OLS slope is near zero and statistically insignificant
+($\hat{\delta} = 0.9$, $p > 0.10$, $R^2 \approx 0.00$), reflecting
+substantial noise among the many small 3-digit sectors.
+Once sectors are weighted by their pre-period application volume, however,
+the slope rises sharply to $41.1$ ($p < 0.01$, $R^2 = 0.31$): among
+the sectors that account for the bulk of economic activity, higher AI
+exposure is strongly associated with faster application growth.
+
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{fig_scatter_naics3}
+  \caption{AI exposure versus change in weekly business applications,
+           3-digit NAICS sectors. November~2022 vs.\ November~2025.
+           Bubble size proportional to pre-period mean weekly applications.
+           Blue line: unweighted OLS. Red line: WLS weighted by pre-period
+           application volume. Shaded bands: 95\,\% confidence intervals.}
+  \label{fig:scatter_naics3}
+\end{figure}
+
+\input{tab_scatter_naics3.tex}
+
+\subsection{US States}
+\label{sec:states_robust}
 
 Appendix~\ref{app:state} reports a state-level robustness check using the
 AI Geographic Exposure (AIGE) index of

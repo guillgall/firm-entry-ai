@@ -8,6 +8,7 @@ library(lubridate)
 library(fixest)
 library(modelsummary)
 library(ggplot2)
+library(ggrepel)
 library(broom)
 library(here)
 
@@ -871,9 +872,12 @@ fig_scatter <- ggplot(scatter_df, aes(x = aioe_norm, y = pct_change)) +
   geom_hline(yintercept = 0, linetype = "dashed", colour = "grey60") +
   geom_smooth(method = "lm", se = TRUE, colour = "steelblue",
               fill = "steelblue", alpha = 0.15, linewidth = 0.8) +
-  geom_point(colour = "grey25", size = 2) +
-  geom_text(aes(label = abbrev), size = 2.5, vjust = -0.7,
-            colour = "grey25", check_overlap = TRUE) +
+  geom_point(aes(size = pre), colour = "grey25", alpha = 0.7) +
+  geom_text_repel(aes(label = abbrev), size = 2.8, colour = "grey25",
+                  max.overlaps = Inf, segment.size = 0.3,
+                  segment.colour = "grey60", box.padding = 0.3) +
+  scale_size_continuous(name = "Pre-period BA", labels = scales::comma,
+                        range = c(1, 8)) +
   scale_x_continuous(breaks = c(0, 0.25, 0.5, 0.75, 1),
                      labels = c("0", ".25", ".5", ".75", "1")) +
   labs(
@@ -890,19 +894,13 @@ fig_scatter <- ggplot(scatter_df, aes(x = aioe_norm, y = pct_change)) +
   )
 
 ggsave(file.path(ROOT, "Draft", "fig_scatter.pdf"), fig_scatter,
-       width = 7, height = 5, device = "pdf")
+       width = 8, height = 6, device = "pdf")
 message("Saved: Draft/fig_scatter.pdf")
 
 # Companion regression table for the scatter
 # Unweighted OLS and WLS weighted by pre-period mean BA (sector size)
 scatter_reg_df <- scatter_df |>
-  left_join(
-    df |>
-      filter(!naics2 %in% c("US", "NONAIC"), date <= pre_date_sc, ba > 0) |>
-      group_by(naics2) |>
-      summarise(weight = mean(ba, na.rm = TRUE), .groups = "drop"),
-    by = "naics2"
-  )
+  rename(weight = pre)
 
 scatter_ols <- lm(pct_change ~ aioe_norm, data = scatter_reg_df)
 scatter_wls <- lm(pct_change ~ aioe_norm, data = scatter_reg_df,
