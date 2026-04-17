@@ -1,16 +1,9 @@
-\begin{thebibliography}{5}
+\begin{thebibliography}{3}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
   \providecommand{\doi}[1]{doi: #1}\else
   \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
-
-\bibitem[Berg\'{e}(2018)]{berge2018fixest}
-Laurent Berg\'{e}.
-\newblock Efficient estimation of maximum likelihood models with multiple
-  fixed-effects: the {R} package \texttt{FENmlm}.
-\newblock \emph{CREA Discussion Papers}, \penalty0 (13), 2018.
-\newblock Package now distributed as \texttt{fixest}.
 
 \bibitem[Chatterji et~al.(2025)Chatterji, Rock, and
   Talam{\`a}s]{chatterji2025transformative}
@@ -36,13 +29,5 @@ Edward~W. Felten, Manav Raj, and Robert Seamans.
 \newblock \emph{Strategic Management Journal}, 42\penalty0 (12):\penalty0
   2195--2217, 2021.
 \newblock \doi{10.1002/smj.3325}.
-
-\bibitem[Haltiwanger et~al.(2020)Haltiwanger, Hyatt, Kahn, and
-  McEntarfer]{haltiwanger2020bfs}
-John Haltiwanger, Henry~R. Hyatt, Lisa~B. Kahn, and Erika McEntarfer.
-\newblock Cyclical job ladders by firm size and firm wage.
-\newblock Census Bureau Business Formation Statistics Technical Note, 2020.
-\newblock URL \url{https://www.census.gov/data/tables/time-series/econ/bfs/
-  business-formation-statistics.html}.
 
 \end{thebibliography}

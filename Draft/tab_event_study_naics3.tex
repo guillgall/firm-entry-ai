@@ -1,0 +1,179 @@
+\begin{table}
+\centering
+\begin{talltblr}[         %% tabularray outer open
+caption={Event-Study Estimates \textemdash\ 3-digit NAICS, SA Weekly, 4-week blocks},
+note{}={* p \num{< 0.1}, ** p \num{< 0.05}, *** p \num{< 0.01}},
+note{ }={Outcome: log(seasonally adjusted weekly business applications). Weekly BA seasonally adjusted per sector using STL decomposition (multiplicative, log scale, periodic window). Event time in weeks relative to ChatGPT launch (28~Nov~2022), binned into 4-week blocks. Reference block: $t \in [-4, -1]$. Observations weighted by sector pre-period mean weekly BA. Sector + ISO year-week fixed effects. SEs clustered by NAICS-3.},
+]                     %% tabularray outer close
+{                     %% tabularray inner open
+colspec={Q[]Q[]},
+hline{2}={1-2}{solid, black, 0.05em},
+hline{158}={1-2}{solid, black, 0.05em},
+hline{1}={1-2}{solid, black, 0.08em},
+hline{162}={1-2}{solid, black, 0.08em},
+column{2}={}{halign=c},
+column{1}={}{halign=l},
+}                     %% tabularray inner close
+& Event Study (3-digit NAICS, 4w blocks) \\
+Dec 2019 ($t = -156$w) & \num{0.066} \\
+& (\num{0.063}) \\
+Dec 2019 ($t = -152$w) & \num{0.164}** \\
+& (\num{0.069}) \\
+Jan 2020 ($t = -148$w) & \num{0.148}** \\
+& (\num{0.065}) \\
+Feb 2020 ($t = -144$w) & \num{0.205}*** \\
+& (\num{0.073}) \\
+Mar 2020 ($t = -140$w) & \num{0.471}*** \\
+& (\num{0.050}) \\
+Apr 2020 ($t = -136$w) & \num{0.363}*** \\
+& (\num{0.050}) \\
+May 2020 ($t = -132$w) & \num{0.166}*** \\
+& (\num{0.055}) \\
+Jun 2020 ($t = -128$w) & \num{-0.081} \\
+& (\num{0.113}) \\
+Jul 2020 ($t = -124$w) & \num{-0.123} \\
+& (\num{0.107}) \\
+Aug 2020 ($t = -120$w) & \num{-0.035} \\
+& (\num{0.068}) \\
+Sep 2020 ($t = -116$w) & \num{0.003} \\
+& (\num{0.056}) \\
+Oct 2020 ($t = -112$w) & \num{0.004} \\
+& (\num{0.055}) \\
+Nov 2020 ($t = -108$w) & \num{-0.007} \\
+& (\num{0.058}) \\
+Nov 2020 ($t = -104$w) & \num{-0.024} \\
+& (\num{0.085}) \\
+Dec 2020 ($t = -100$w) & \num{-0.001} \\
+& (\num{0.094}) \\
+Jan 2021 ($t = -96$w) & \num{0.042} \\
+& (\num{0.099}) \\
+Feb 2021 ($t = -92$w) & \num{0.025} \\
+& (\num{0.108}) \\
+Mar 2021 ($t = -88$w) & \num{-0.124} \\
+& (\num{0.098}) \\
+Apr 2021 ($t = -84$w) & \num{-0.208}* \\
+& (\num{0.113}) \\
+May 2021 ($t = -80$w) & \num{-0.183}* \\
+& (\num{0.106}) \\
+Jun 2021 ($t = -76$w) & \num{-0.135} \\
+& (\num{0.093}) \\
+Jul 2021 ($t = -72$w) & \num{-0.086} \\
+& (\num{0.089}) \\
+Aug 2021 ($t = -68$w) & \num{-0.043} \\
+& (\num{0.094}) \\
+Sep 2021 ($t = -64$w) & \num{-0.050} \\
+& (\num{0.094}) \\
+Oct 2021 ($t = -60$w) & \num{0.020} \\
+& (\num{0.106}) \\
+Nov 2021 ($t = -56$w) & \num{0.028} \\
+& (\num{0.094}) \\
+Nov 2021 ($t = -52$w) & \num{0.038} \\
+& (\num{0.106}) \\
+Dec 2021 ($t = -48$w) & \num{0.000} \\
+& (\num{0.098}) \\
+Jan 2022 ($t = -44$w) & \num{0.027} \\
+& (\num{0.103}) \\
+Feb 2022 ($t = -40$w) & \num{-0.016} \\
+& (\num{0.099}) \\
+Mar 2022 ($t = -36$w) & \num{-0.033} \\
+& (\num{0.074}) \\
+Apr 2022 ($t = -32$w) & \num{-0.096} \\
+& (\num{0.076}) \\
+May 2022 ($t = -28$w) & \num{-0.025} \\
+& (\num{0.049}) \\
+Jun 2022 ($t = -24$w) & \num{-0.014} \\
+& (\num{0.033}) \\
+Jul 2022 ($t = -20$w) & \num{-0.035} \\
+& (\num{0.033}) \\
+Aug 2022 ($t = -16$w) & \num{-0.014} \\
+& (\num{0.026}) \\
+Sep 2022 ($t = -12$w) & \num{0.002} \\
+& (\num{0.022}) \\
+Oct 2022 ($t = -8$w) & \num{-0.021} \\
+& (\num{0.021}) \\
+Nov 2022 ($t = 0$w) & \num{-0.007} \\
+& (\num{0.024}) \\
+Dec 2022 ($t = 4$w) & \num{-0.073} \\
+& (\num{0.049}) \\
+Jan 2023 ($t = 8$w) & \num{-0.001} \\
+& (\num{0.034}) \\
+Feb 2023 ($t = 12$w) & \num{0.024} \\
+& (\num{0.035}) \\
+Mar 2023 ($t = 16$w) & \num{0.007} \\
+& (\num{0.054}) \\
+Apr 2023 ($t = 20$w) & \num{0.015} \\
+& (\num{0.047}) \\
+May 2023 ($t = 24$w) & \num{-0.006} \\
+& (\num{0.056}) \\
+Jun 2023 ($t = 28$w) & \num{-0.067} \\
+& (\num{0.073}) \\
+Jul 2023 ($t = 32$w) & \num{-0.020} \\
+& (\num{0.067}) \\
+Aug 2023 ($t = 36$w) & \num{0.066} \\
+& (\num{0.065}) \\
+Sep 2023 ($t = 40$w) & \num{0.078} \\
+& (\num{0.064}) \\
+Oct 2023 ($t = 44$w) & \num{0.090} \\
+& (\num{0.059}) \\
+Oct 2023 ($t = 48$w) & \num{0.097} \\
+& (\num{0.068}) \\
+Nov 2023 ($t = 52$w) & \num{0.046} \\
+& (\num{0.085}) \\
+Dec 2023 ($t = 56$w) & \num{0.045} \\
+& (\num{0.088}) \\
+Jan 2024 ($t = 60$w) & \num{0.067} \\
+& (\num{0.067}) \\
+Feb 2024 ($t = 64$w) & \num{0.089} \\
+& (\num{0.059}) \\
+Mar 2024 ($t = 68$w) & \num{0.145}** \\
+& (\num{0.066}) \\
+Apr 2024 ($t = 72$w) & \num{0.143}** \\
+& (\num{0.059}) \\
+May 2024 ($t = 76$w) & \num{0.183}*** \\
+& (\num{0.059}) \\
+Jun 2024 ($t = 80$w) & \num{0.182}*** \\
+& (\num{0.063}) \\
+Jul 2024 ($t = 84$w) & \num{0.156}** \\
+& (\num{0.059}) \\
+Aug 2024 ($t = 88$w) & \num{0.201}*** \\
+& (\num{0.059}) \\
+Sep 2024 ($t = 92$w) & \num{0.232}*** \\
+& (\num{0.057}) \\
+Sep 2024 ($t = 96$w) & \num{0.208}*** \\
+& (\num{0.060}) \\
+Oct 2024 ($t = 100$w) & \num{0.144}*** \\
+& (\num{0.054}) \\
+Nov 2024 ($t = 104$w) & \num{0.173}*** \\
+& (\num{0.057}) \\
+Dec 2024 ($t = 108$w) & \num{0.178}** \\
+& (\num{0.077}) \\
+Jan 2025 ($t = 112$w) & \num{0.161}*** \\
+& (\num{0.058}) \\
+Feb 2025 ($t = 116$w) & \num{0.188}*** \\
+& (\num{0.060}) \\
+Mar 2025 ($t = 120$w) & \num{0.246}*** \\
+& (\num{0.078}) \\
+Apr 2025 ($t = 124$w) & \num{0.252}*** \\
+& (\num{0.077}) \\
+May 2025 ($t = 128$w) & \num{0.283}*** \\
+& (\num{0.086}) \\
+Jun 2025 ($t = 132$w) & \num{0.312}*** \\
+& (\num{0.089}) \\
+Jul 2025 ($t = 136$w) & \num{0.281}*** \\
+& (\num{0.083}) \\
+Aug 2025 ($t = 140$w) & \num{0.262}*** \\
+& (\num{0.086}) \\
+Sep 2025 ($t = 144$w) & \num{0.261}*** \\
+& (\num{0.096}) \\
+Sep 2025 ($t = 148$w) & \num{0.274}*** \\
+& (\num{0.092}) \\
+Oct 2025 ($t = 152$w) & \num{0.274}*** \\
+& (\num{0.096}) \\
+Nov 2025 ($t = 156$w) & \num{0.310}*** \\
+& (\num{0.082}) \\
+Observations & \num{23712} \\
+R$^2$ & \num{0.993} \\
+Sector FE & X \\
+Year-Week FE & X \\
+\end{talltblr}
+\end{table}

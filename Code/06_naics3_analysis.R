@@ -295,3 +295,356 @@ message("\n=========================================================")
 message("  3-digit NAICS scatter complete.")
 message("  fig_scatter_naics3.pdf + tab_scatter_naics3.tex in Draft/")
 message("=========================================================")
+
+# ---------------------------------------------------------------------------
+# 7. Seasonal adjustment — STL per sector on log scale
+#    Multiplicative SA: decompose log(BA), remove seasonal component,
+#    exponentiate back.  Handles sector-specific seasonal cycles that
+#    would otherwise oscillate into the event-study bins.
+# ---------------------------------------------------------------------------
+library(fixest)
+library(broom)
+
+sa_by_sector <- function(ba, freq = 52L) {
+  n <- length(ba)
+  if (n < 2L * freq) return(rep(NA_real_, n))
+
+  # Log scale with floor to avoid log(0)
+  y <- log(pmax(ba, 0.5))
+
+  # Linear interpolation for any NAs mid-series
+  if (anyNA(y)) {
+    ok  <- which(!is.na(y))
+    if (length(ok) < 4L) return(rep(NA_real_, n))
+    nas <- which(is.na(y))
+    y[nas] <- approx(ok, y[ok], xout = nas, rule = 2L)$y
+  }
+
+  fit <- tryCatch(
+    stl(ts(y, frequency = freq), s.window = "periodic", robust = TRUE),
+    error = function(e) NULL
+  )
+  if (is.null(fit)) return(rep(NA_real_, n))
+
+  # Subtract seasonal component and back-transform
+  exp(y - as.numeric(fit$time.series[, "seasonal"]))
+}
+
+# Apply per sector (data must be sorted by date within sector)
+df_sa <- df |>
+  arrange(naics3, date) |>
+  group_by(naics3) |>
+  mutate(ba_sa = sa_by_sector(ba)) |>
+  ungroup()
+
+n_sa_ok <- n_distinct(df_sa$naics3[!is.na(df_sa$ba_sa)])
+message("Sectors with SA series: ", n_sa_ok)
+
+# ---------------------------------------------------------------------------
+# 8. Event study on SA weekly data, 4-week bins, year-week FE
+# ---------------------------------------------------------------------------
+
+# Sector weight = pre-ChatGPT mean weekly BA_SA
+sector_weights <- df_sa |>
+  filter(!is.na(ba_sa), ba_sa > 0, date < CHATGPT_WEEK) |>
+  group_by(naics3) |>
+  summarise(w = mean(ba_sa, na.rm = TRUE), .groups = "drop")
+
+df_reg <- df_sa |>
+  filter(!is.na(ba_sa), ba_sa > 0) |>
+  mutate(
+    log_ba  = log(ba_sa),
+    event_t = as.integer((date - CHATGPT_WEEK) / 7),
+    yw      = as.integer(format(date, "%G%V"))
+  ) |>
+  left_join(sector_weights, by = "naics3")
+
+message("Panel rows: ", nrow(df_reg))
+message("Pre-ChatGPT obs: ",  sum(df_reg$event_t <  0))
+message("Post-ChatGPT obs: ", sum(df_reg$event_t >= 0))
+
+BIN_WEEKS <- 4L
+ES_PRE_W  <- -156L
+ES_POST_W <-  156L
+REF_BIN   <- -BIN_WEEKS
+
+df_es <- df_reg |>
+  filter(between(event_t, ES_PRE_W, ES_POST_W)) |>
+  mutate(
+    event_bin = floor(event_t / BIN_WEEKS) * BIN_WEEKS,
+    event_bin = relevel(factor(event_bin), ref = as.character(REF_BIN))
+  )
+
+es_model <- feols(
+  log_ba ~ i(event_bin, aioe_norm, ref = as.character(REF_BIN)) | naics3 + yw,
+  data    = df_es,
+  weights = ~w,
+  cluster = ~naics3
+)
+
+print(summary(es_model))
+
+# Tidy coefficients
+es_tidy <- tidy(es_model, conf.int = TRUE) |>
+  filter(str_detect(term, "event_bin")) |>
+  mutate(t = as.numeric(str_extract(term, "-?\\d+")))
+
+block_to_date <- function(t_val) CHATGPT_WEEK + weeks(as.integer(t_val))
+
+es_df <- es_tidy |>
+  select(t, coef = estimate, ci_lo = conf.low, ci_hi = conf.high,
+         pval = p.value) |>
+  bind_rows(tibble(t = REF_BIN * 1.0, coef = 0, ci_lo = 0, ci_hi = 0,
+                   pval = NA_real_)) |>
+  arrange(t) |>
+  mutate(
+    date = block_to_date(t),
+    sig  = case_when(
+      is.na(pval) ~ "Reference",
+      pval < 0.05 ~ "p < 0.05",
+      pval < 0.10 ~ "p < 0.10",
+      TRUE        ~ "n.s."
+    ),
+    sig = factor(sig, levels = c("p < 0.05", "p < 0.10", "n.s.", "Reference"))
+  )
+
+# ---------------------------------------------------------------------------
+# 9. Event-study plot
+# ---------------------------------------------------------------------------
+sig_colours <- c(
+  "p < 0.05"  = "#2ca02c",
+  "p < 0.10"  = "#98df8a",
+  "n.s."      = "#d62728",
+  "Reference" = "grey50"
+)
+
+fig_es_naics3 <- ggplot(es_df, aes(x = date, y = coef)) +
+  geom_hline(yintercept = 0, linetype = "dashed", colour = "grey50") +
+  geom_vline(xintercept = CHATGPT_WEEK, linetype = "dashed",
+             colour = "black", linewidth = 0.4) +
+  annotate("text", x = CHATGPT_WEEK + 10, y = Inf,
+           label = "ChatGPT", vjust = 1.4, hjust = 0, size = 3,
+           colour = "grey30") +
+  geom_ribbon(aes(ymin = ci_lo, ymax = ci_hi), alpha = 0.15, fill = "grey70") +
+  geom_line(colour = "grey40", linewidth = 0.6) +
+  geom_point(aes(colour = sig), size = 1.8) +
+  scale_colour_manual(values = sig_colours, name = NULL) +
+  scale_x_date(date_breaks = "1 year", date_labels = "%Y") +
+  labs(
+    title    = "Event Study: AI Exposure \u00d7 Post on log(SA Weekly BA) \u2014 3-digit NAICS",
+    subtitle = paste0("4-week bins; sector + year-week FE; STL-SA per sector; ",
+                      "weighted by pre-period mean BA; SEs clustered by NAICS-3."),
+    x = NULL, y = "Coefficient on AI Exposure \u00d7 Event Bin"
+  ) +
+  theme_paper +
+  theme(plot.subtitle = element_text(size = 8, colour = "grey40"))
+
+ggsave(file.path(ROOT, "Draft", "fig_event_study_naics3.pdf"), fig_es_naics3,
+       width = 8, height = 4.5, device = "pdf")
+message("Saved: Draft/fig_event_study_naics3.pdf")
+
+# ---------------------------------------------------------------------------
+# 10. Event-study regression table
+# ---------------------------------------------------------------------------
+es_coef_names <- names(coef(es_model))
+es_coef_map   <- setNames(
+  sapply(es_coef_names, function(nm) {
+    t_val    <- as.integer(str_extract(nm, "-?\\d+"))
+    cal_date <- block_to_date(t_val)
+    paste0(format(cal_date, "%b %Y"), " ($t = ", t_val, "$w)")
+  }),
+  es_coef_names
+)
+
+modelsummary(
+  list("Event Study (3-digit NAICS, 4w blocks)" = es_model),
+  output   = file.path(ROOT, "Draft", "tab_event_study_naics3.tex"),
+  stars    = c("*" = 0.10, "**" = 0.05, "***" = 0.01),
+  coef_map = es_coef_map,
+  gof_map  = list(
+    list(raw = "nobs",       clean = "Observations", fmt = 0),
+    list(raw = "r.squared",  clean = "R$^2$",        fmt = 3),
+    list(raw = "FE: naics3", clean = "Sector FE",    fmt = 0),
+    list(raw = "FE: yw",     clean = "Year-Week FE", fmt = 0)
+  ),
+  title  = "Event-Study Estimates \\textemdash\\ 3-digit NAICS, SA Weekly, 4-week blocks",
+  notes  = paste(
+    "Outcome: log(seasonally adjusted weekly business applications).",
+    "Weekly BA seasonally adjusted per sector using STL decomposition",
+    "(multiplicative, log scale, periodic window).",
+    "Event time in weeks relative to ChatGPT launch (28~Nov~2022),",
+    "binned into 4-week blocks. Reference block: $t \\in [-4, -1]$.",
+    "Observations weighted by sector pre-period mean weekly BA.",
+    "Sector + ISO year-week fixed effects. SEs clustered by NAICS-3."
+  ),
+  escape = FALSE
+)
+message("Saved: Draft/tab_event_study_naics3.tex")
+
+message("Saved: Draft/tab_event_study_naics3.tex")
+
+message("\n=========================================================")
+message("  3-digit NAICS analysis complete.")
+message("  Outputs in Draft/ with _naics3 suffix.")
+message("=========================================================")
+
+if (FALSE) {
+# ---------------------------------------------------------------------------
+# 11. Faceted event study — all available 3-digit NAICS series
+#     Mirrors fig_es_robust.pdf from the 2-digit analysis.
+#     Census publishes BA at NAICS-3 weekly. HBA and WBA may also exist as
+#     separate files — try to download them, skip gracefully if absent.
+# ---------------------------------------------------------------------------
+
+# 11a. Helper: download a wide naics3 series CSV, parse → long data frame.
+#      Returns NULL (with a message) if the file doesn't exist on Census servers.
+read_naics3_series <- function(col_name, url_suffix) {
+  url      <- paste0("https://www.census.gov/econ/bfs/csv/", url_suffix, ".csv")
+  tmp_path <- file.path(ROOT, "Data", "Input",
+                        paste0("bfs_", url_suffix, ".csv"))
+
+  if (!file.exists(tmp_path)) {
+    resp <- tryCatch(
+      GET(url, write_disk(tmp_path, overwrite = TRUE), timeout(60)),
+      error = function(e) NULL
+    )
+    if (is.null(resp) || http_error(resp)) {
+      suppressWarnings(try(file.remove(tmp_path), silent = TRUE))
+      message("  ", col_name, ": not available at Census (", url, ")")
+      return(NULL)
+    }
+    message("  ", col_name, ": downloaded from ", url)
+  } else {
+    message("  ", col_name, ": using cached file")
+  }
+
+  raw_s <- tryCatch(read_csv(tmp_path, show_col_types = FALSE),
+                    error = function(e) NULL)
+  if (is.null(raw_s)) return(NULL)
+
+  naics_c <- names(raw_s)[str_detect(tolower(names(raw_s)), "^naics")][1]
+  wk_cols <- names(raw_s)[str_detect(names(raw_s), "^\\d{4}w\\d{1,2}$")]
+  if (is.na(naics_c) || length(wk_cols) == 0) {
+    message("  ", col_name, ": unexpected file format — skipping")
+    return(NULL)
+  }
+
+  raw_s |>
+    rename(naics3 = all_of(naics_c)) |>
+    mutate(naics3 = as.character(naics3)) |>
+    filter(str_detect(naics3, "^\\d{3}$")) |>
+    select(naics3, all_of(wk_cols)) |>
+    pivot_longer(cols      = all_of(wk_cols),
+                 names_to  = "yw_str",
+                 values_to = col_name) |>
+    mutate(
+      year          = as.integer(str_extract(yw_str, "^\\d{4}")),
+      week          = as.integer(str_extract(yw_str, "\\d{1,2}$")),
+      date          = yw_to_date(year, week),
+      !!col_name   := suppressWarnings(as.numeric(.data[[col_name]]))
+    ) |>
+    filter(!is.na(.data[[col_name]]), !is.na(date)) |>
+    select(naics3, date, all_of(col_name))
+}
+
+# 11b. Series catalogue — add rows here if Census releases more NAICS-3 files
+series_meta3 <- tribble(
+  ~col,   ~url_suffix,   ~label,
+  "ba",   "naics3",      "Business Applications (BA)",
+  "hba",  "hba_naics3",  "High-Propensity Apps (HBA)",
+  "wba",  "wba_naics3",  "Apps w/ Planned Wages (WBA)",
+  "cba",  "cba_naics3",  "Corrected Applications (CBA)"
+)
+
+# 11c. Build multi-series panel: SA each series per sector, join together
+message("\nDownloading / checking NAICS-3 series:")
+panel_list <- list()
+
+for (i in seq_len(nrow(series_meta3))) {
+  col <- series_meta3$col[i]
+  sfx <- series_meta3$url_suffix[i]
+
+  raw_long <- read_naics3_series(col, sfx)
+  if (is.null(raw_long)) next
+
+  # Seasonal adjustment per sector on log scale (same as ba_sa in section 7)
+  sa_long <- raw_long |>
+    arrange(naics3, date) |>
+    group_by(naics3) |>
+    mutate(!!paste0(col, "_sa") := sa_by_sector(.data[[col]])) |>
+    ungroup() |>
+    select(naics3, date, all_of(paste0(col, "_sa")))
+
+  panel_list[[col]] <- sa_long
+  message("  ", col, "_sa ready: ", nrow(sa_long), " rows")
+}
+
+# Merge all available series onto the base df_reg panel
+df_multi <- df_reg |>
+  select(naics3, aioe_norm, date, log_ba, event_t, yw, w)
+
+for (col in names(panel_list)) {
+  sa_col <- paste0(col, "_sa")
+  df_multi <- df_multi |>
+    left_join(panel_list[[col]], by = c("naics3", "date")) |>
+    mutate(!!paste0("log_", col) := log(pmax(.data[[sa_col]], 0.01))) |>
+    select(-all_of(sa_col))
+}
+
+message("Multi-series panel cols: ", paste(names(df_multi), collapse = ", "))
+
+# 11d. Helper: run event study for one log-outcome column
+run_es_naics3 <- function(log_col, data) {
+  df_run <- data |>
+    filter(!is.na(.data[[log_col]]),
+           is.finite(.data[[log_col]]),
+           between(event_t, ES_PRE_W, ES_POST_W)) |>
+    mutate(
+      event_bin = floor(event_t / BIN_WEEKS) * BIN_WEEKS,
+      event_bin = relevel(factor(event_bin), ref = as.character(REF_BIN))
+    )
+
+  if (nrow(df_run) < 100 || n_distinct(df_run$naics3) < 5) {
+    message("  Skipping ", log_col, " — too few rows/sectors")
+    return(NULL)
+  }
+
+  mod <- tryCatch(
+    feols(
+      reformulate(
+        paste0("i(event_bin, aioe_norm, ref = '", REF_BIN, "')"),
+        response = log_col
+      ),
+      fixef   = c("naics3", "yw"),
+      data    = df_run,
+      weights = ~w,
+      cluster = ~naics3
+    ),
+    error = function(e) {
+      message("  ", log_col, " failed: ", e$message)
+      NULL
+    }
+  )
+  if (is.null(mod)) return(NULL)
+
+  tidy(mod, conf.int = TRUE) |>
+    filter(str_detect(term, "event_bin")) |>
+    mutate(t = as.numeric(str_extract(term, "-?\\d+"))) |>
+    select(t, coef = estimate, ci_lo = conf.low, ci_hi = conf.high,
+           pval = p.value) |>
+    bind_rows(tibble(t = REF_BIN * 1.0, coef = 0, ci_lo = 0, ci_hi = 0,
+                     pval = NA_real_)) |>
+    arrange(t) |>
+    mutate(
+      date = block_to_date(t),
+      sig  = case_when(
+        is.na(pval) ~ "Reference",
+        pval < 0.05 ~ "p < 0.05",
+        pval < 0.10 ~ "p < 0.10",
+        TRUE        ~ "n.s."
+      ),
+      sig = factor(sig, levels = c("p < 0.05", "p < 0.10", "n.s.", "Reference"))
+    )
+}
+
+} # end if (FALSE) — section 11 disabled (only BA available at NAICS-3)

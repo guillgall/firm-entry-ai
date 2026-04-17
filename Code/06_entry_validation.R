@@ -94,93 +94,22 @@ plot_df <- bds |>
   )
 
 # ---------------------------------------------------------------------------
-# 4. BED (Business Employment Dynamics, BLS) – quarterly establishment births
+# 4. Plot (BDS + BFS)
 # ---------------------------------------------------------------------------
-BLS_KEY <- "af3787ed391040f4b3cb50bd3679db35"
-
-bed_series <- c(
-  "BDU00000000000000000085",   # Opening establishments, private, national
-  "BDU00000000000000000095"    # Closing establishments, private, national
-)
-
-bed_raw <- POST(
-  "https://api.bls.gov/publicAPI/v2/timeseries/data/",
-  body = toJSON(list(
-    seriesid        = bed_series,
-    startyear       = "2000",
-    endyear         = "2024",
-    registrationkey = BLS_KEY
-  )),
-  content_type_json()
-)
-stop_for_status(bed_raw)
-
-bed_json <- fromJSON(content(bed_raw, "text", encoding = "UTF-8"))
-
-if (bed_json$status != "REQUEST_SUCCEEDED") {
-  warning("BLS API returned status: ", bed_json$status,
-          "\nMessages: ", paste(bed_json$message, collapse = "; "))
-}
-
-# Parse all series into a single tibble.
-# Re-parse with simplifyVector=FALSE so the entire response is pure nested lists.
-bed_list <- fromJSON(content(bed_raw, "text", encoding = "UTF-8"),
-                     simplifyVector = FALSE)
-
-# ---- Diagnostics: print structure so we can verify field names ----
-message("BLS status : ", bed_list$status)
-if (length(bed_list$message) > 0)
-  message("BLS messages: ", paste(unlist(bed_list$message), collapse = "; "))
-
-s1   <- bed_list$Results$series[[1]]
-row1 <- s1$data[[1]]
-message("Series[[1]] field names  : ", paste(names(s1),   collapse = ", "))
-message("data[[1]]   field names  : ", paste(names(row1), collapse = ", "))
-message("data[[1]] raw (str):\n",
-        paste(capture.output(str(row1, max.level = 1)), collapse = "\n"))
-# -------------------------------------------------------------------
-
-bed_df <- map_dfr(bed_list$Results$series, function(s) {
-  map_dfr(s$data, function(row) {
-    tibble(
-      seriesID = s[["seriesID"]],
-      year     = row[["year"]],
-      period   = row[["period"]],
-      value    = row[["value"]]
-    )
-  })
-}) |>
-  mutate(
-    year  = as.integer(year),
-    value = as.numeric(value)
-  ) |>
-  filter(!period %in% c("Q05", "A01"))  # drop any annual-total rows
-
-# Opening establishments (series …085), summed to annual
-bed_opens <- bed_df |>
-  filter(seriesID == "BDU00000000000000000085") |>
-  group_by(year) |>
-  summarise(bed_opens_annual = sum(value, na.rm = TRUE), .groups = "drop") |>
-  filter(year >= 2000)
-
-message("BED downloaded: ", nrow(bed_opens), " annual observations (",
-        min(bed_opens$year), "-", max(bed_opens$year), ")")
-saveRDS(bed_opens, file.path(ROOT, "Data", "Output", "bed_annual.rds"))
-
+# NOTE: BED (Business Employment Dynamics) was attempted but the BLS Public
+# Data API v2 consistently returns REQUEST_FAILED for all candidate series IDs.
+# The correct 28-char format (per bd.txt) is:
+#   BD + seasonal(1) + MSA(5) + state(2) + county(3) + industry(6)
+#   + unitanalysis(1) + dataelement(1) + sizeclass(2) + dataclass(2)
+#   + ratelevel(1) + periodicity(1) + ownership(1)
+# Best candidate for establishment births (SA, national private, all industries):
+#   BDS0000000000000000120007LQ5
+# API key: af3787ed391040f4b3cb50bd3679db35
+# To verify series IDs, use the BLS Data Finder:
+#   https://data.bls.gov/dataQuery/search
+# or the BLS Series Report tool:
+#   https://data.bls.gov/series-report
 # ---------------------------------------------------------------------------
-# 5. Add BED to indexed plot
-# ---------------------------------------------------------------------------
-bed_base <- bed_opens |> filter(year == base_year) |> pull(bed_opens_annual)
-
-plot_df <- plot_df |>
-  bind_rows(
-    bed_opens |>
-      mutate(
-        index  = bed_opens_annual / bed_base,
-        series = "BED opening establishments"
-      ) |>
-      select(year, index, series)
-  )
 
 fig_validation <- ggplot(plot_df, aes(x = year, y = index, colour = series, linetype = series)) +
   geom_hline(yintercept = 1, colour = "grey70", linewidth = 0.4) +
@@ -191,16 +120,14 @@ fig_validation <- ggplot(plot_df, aes(x = year, y = index, colour = series, line
   scale_colour_manual(
     values = c(
       "BDS establishment entry rate"     = "#1f77b4",
-      "BFS high-propensity applications" = "#d62728",
-      "BED opening establishments"       = "#2ca02c"
+      "BFS high-propensity applications" = "#d62728"
     ),
     name = NULL
   ) +
   scale_linetype_manual(
     values = c(
       "BDS establishment entry rate"     = "solid",
-      "BFS high-propensity applications" = "dashed",
-      "BED opening establishments"       = "dotdash"
+      "BFS high-propensity applications" = "dashed"
     ),
     name = NULL
   ) +
@@ -211,8 +138,7 @@ fig_validation <- ggplot(plot_df, aes(x = year, y = index, colour = series, line
     y       = "Index (2019 = 1)",
     caption = paste(
       "Sources: Census Bureau Business Dynamics Statistics (BDS);",
-      "Census Bureau Business Formation Statistics (BFS);",
-      "Bureau of Labor Statistics Business Employment Dynamics (BED)."
+      "Census Bureau Business Formation Statistics (BFS)."
     )
   ) +
   theme_paper +
@@ -223,4 +149,4 @@ fig_validation <- ggplot(plot_df, aes(x = year, y = index, colour = series, line
 
 ggsave(file.path(ROOT, "Draft", "fig_validation.pdf"), fig_validation,
        width = 7, height = 4, device = "pdf")
-message("Saved: Draft/fig_validation.pdf (updated with BED)")
+message("Saved: Draft/fig_validation.pdf")

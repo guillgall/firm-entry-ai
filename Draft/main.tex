@@ -60,11 +60,9 @@ In this short paper, I show that, following the release of ChatGPT in November 2
 \label{sec:intro}
 % -----------------------------------------------------------------------
 
-After the COVID-19 shock, aggregate business applications surged to historic
-highs \citep{decker2023surging} and have continued rising through 2026, but the expansion is not
-uniform across sectors, as seen in Figure~\ref{fig:spotlight}. The release of ChatGPT in November-2022 seems to have increased firm entry, too. However, this surge 
+After the COVID-19 shock, aggregate business applications surged \citep{decker2023surging}. The release of ChatGPT in November-2022 seems to have increased firm entry, too, specially after 2024, as seen in Figure~\ref{fig:spotlight}. This expansion is not uniform across sectors. 
 
-Sectors such as Professional Services have increased more than the average, while others such as Construction have lagged behind. From this plot a simple observation arises: while the former sector is exposed to AI, the latter ones are less so. Does this pattern hold across all sectors, though? 
+Sectors such as Professional Services have increased more than the average, while others such as Construction have lagged behind. From this plot a simple observation arises: while the former sector is exposed to AI, the latter ones is less so. Does this pattern hold across all sectors, though? 
 
 In this paper I show that it does: AI-exposed sectors have experienced a firm entry boom, while less-exposed sectors have lagged behind. The scatter-plot in Figure~\ref{fig:scatter} illustrates this clearly.  
 
@@ -293,6 +291,41 @@ exposure is strongly associated with faster application growth.
 
 \input{tab_scatter_naics3.tex}
 
+Figure~\ref{fig:es_naics3} presents the event-study coefficients from
+estimating equation~\eqref{eq:did} on the weekly 3-digit NAICS panel.
+Because the raw weekly series exhibit strong sector-specific seasonality
+— high-AIOE sectors such as Professional Services have a markedly
+different within-year cycle than low-AIOE sectors such as Construction —
+each sector's weekly BA series is first seasonally adjusted using STL
+decomposition on the log scale (multiplicative, periodic window) before
+entering the regression.
+The event study uses 4-week bins, sector and ISO year-week fixed effects,
+and observations weighted by each sector's pre-period mean weekly BA.
+Weighting by sector size is motivated by the cross-sectional evidence in
+Table~\ref{tab:scatter_naics3}: the relationship between AI exposure and
+application growth is concentrated among larger sectors, so weighting
+ensures that identification comes from the same margin.
+The pre-period coefficients are small and statistically indistinguishable
+from zero, supporting the parallel-trends assumption at finer sectoral
+disaggregation.
+Post-launch dynamics mirror those in the 2-digit baseline: coefficients
+drift upward and eventually reach statistical significance, consistent
+with AI-exposed sectors experiencing a relative surge in weekly business
+applications following the ChatGPT release.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{fig_event_study_naics3}
+  \caption{Event-study estimates at 3-digit NAICS.
+           Outcome: log seasonally adjusted weekly business applications
+           (STL decomposition, multiplicative, per sector).
+           4-week event-time blocks relative to ChatGPT launch (28~Nov~2022).
+           Reference block: $t \in [-4, -1]$.
+           Observations weighted by pre-period mean weekly BA.
+           Sector and ISO year-week fixed effects; SEs clustered by NAICS-3.}
+  \label{fig:es_naics3}
+\end{figure}
+
 \subsection{US States}
 \label{sec:states_robust}
 
@@ -314,6 +347,12 @@ main results; the sector-level estimates remain the primary evidence.
 % -----------------------------------------------------------------------
 \appendix
 % -----------------------------------------------------------------------
+
+% -----------------------------------------------------------------------
+\bibliographystyle{plainnat}
+\bibliography{references}
+% -----------------------------------------------------------------------
+
 
 \section{Summary Statistics}
 \label{app:summary}
@@ -417,9 +456,5 @@ across the four BFS series available at state level.
   \label{fig:es_state_facet}
 \end{figure}
 
-% -----------------------------------------------------------------------
-\bibliographystyle{plainnat}
-\bibliography{references}
-% -----------------------------------------------------------------------
 
 \end{document}
