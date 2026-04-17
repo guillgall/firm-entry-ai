@@ -1,4 +1,4 @@
-\begin{thebibliography}{6}
+\begin{thebibliography}{5}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -12,14 +12,6 @@ Laurent Berg\'{e}.
 \newblock \emph{CREA Discussion Papers}, \penalty0 (13), 2018.
 \newblock Package now distributed as \texttt{fixest}.
 
-\bibitem[Brynjolfsson et~al.(2018)Brynjolfsson, Mitchell, and
-  Rock]{brynjolfsson2018can}
-Erik Brynjolfsson, Tom Mitchell, and Daniel Rock.
-\newblock What can machines learn, and what does it mean for occupations and
-  the economy?
-\newblock \emph{AEA Papers and Proceedings}, 108:\penalty0 43--47, 2018.
-\newblock \doi{10.1257/pandp.20181019}.
-
 \bibitem[Chatterji et~al.(2025)Chatterji, Rock, and
   Talam{\`a}s]{chatterji2025transformative}
 Aaron Chatterji, Daniel Rock, and Eduard Talam{\`a}s.
@@ -29,6 +21,14 @@ Aaron Chatterji, Daniel Rock, and Eduard Talam{\`a}s.
   Press, 2025.
 \newblock URL \url{https://www.nber.org/chapters/c15327}.
 
+\bibitem[Decker and Haltiwanger(2023)]{decker2023surging}
+Ryan~A. Decker and John Haltiwanger.
+\newblock Surging business formation in the pandemic: Causes and consequences?
+\newblock \emph{Brookings Papers on Economic Activity}, Fall:\penalty0 1--74,
+  2023.
+\newblock URL \url{https://www.brookings.edu/wp-content/uploads/2023/09/
+  Decker-Haltiwanger_16820-BPEA-FA23_WEB.pdf}.
+
 \bibitem[Felten et~al.(2021)Felten, Raj, and Seamans]{felten2021occupational}
 Edward~W. Felten, Manav Raj, and Robert Seamans.
 \newblock Occupational, industry, and geographic exposure to artificial
@@ -36,13 +36,6 @@ Edward~W. Felten, Manav Raj, and Robert Seamans.
 \newblock \emph{Strategic Management Journal}, 42\penalty0 (12):\penalty0
   2195--2217, 2021.
 \newblock \doi{10.1002/smj.3325}.
-
-\bibitem[Fossen et~al.(2024)Fossen, McLemore, and Sorgner]{fossen2024new}
-Frank~M. Fossen, Madeleine McLemore, and Alina Sorgner.
-\newblock New technologies and entrepreneurship: Evidence from ai exposure.
-\newblock \emph{Small Business Economics}, 2024.
-\newblock \doi{10.1007/s11187-024-00943-3}.
-\newblock Forthcoming.
 
 \bibitem[Haltiwanger et~al.(2020)Haltiwanger, Hyatt, Kahn, and
   McEntarfer]{haltiwanger2020bfs}

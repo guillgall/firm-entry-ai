@@ -261,9 +261,9 @@ agentic_date  <- as.Date("2025-05-01")   # agentic AI tools (t ≈ +30 from Chat
 ## 4a. Sector spotlight: Professional Services vs Manufacturing vs Construction ----
 # Mirror the FRED motivating chart. Manufacturing = sum of NAICS 31, 32, 33.
 # Uses seasonally-adjusted ba values from the monthly SA file.
-# Aggregate SA counts across sub-sectors, then re-index to Jan 2020 = 100.
+# Aggregate SA counts across sub-sectors, then re-index to Nov 2022 = 100.
 reindex <- function(df) {
-  base <- df |> filter(date == as.Date("2020-01-01")) |> pull(ba)
+  base <- df |> filter(date == as.Date("2022-11-01")) |> pull(ba)
   if (length(base) == 0 || is.na(base) || base == 0) return(df |> mutate(ba_idx = NA_real_))
   df |> mutate(ba_idx = 100 * ba / base)
 }
@@ -276,7 +276,6 @@ spotlight_sectors <- bfs_sectors_df |>
   mutate(
     sector_label = case_when(
       naics2 == "54"  ~ "Professional Services (NAICS 54)",
-      naics2 == "MNF" ~ "Manufacturing (NAICS 31\u201333)",
       naics2 == "23"  ~ "Construction (NAICS 23)",
       TRUE            ~ NA_character_
     )
@@ -308,7 +307,6 @@ spotlight_df <- bind_rows(spotlight_sectors, total_line) |>
     sector_label = factor(sector_label, levels = c(
       "Professional Services (NAICS 54)",
       "Total (all NAICS)",
-      "Manufacturing (NAICS 31\u201333)",
       "Construction (NAICS 23)"
     ))
   ) |>
@@ -318,7 +316,6 @@ spotlight_df <- bind_rows(spotlight_sectors, total_line) |>
 sector_colours <- c(
   "Professional Services (NAICS 54)"  = "#1f77b4",
   "Total (all NAICS)"                 = "#d62728",
-  "Manufacturing (NAICS 31\u201333)"  = "#2ca02c",
   "Construction (NAICS 23)"           = "#111111"
 )
 
@@ -337,17 +334,20 @@ fig_spotlight <- ggplot(spotlight_df,
     values = c(
       "Professional Services (NAICS 54)" = 0.9,
       "Total (all NAICS)"                = 0.9,
-      "Manufacturing (NAICS 31\u201333)" = 0.9,
       "Construction (NAICS 23)"          = 0.9
     ), guide = "none") +
   scale_x_date(date_breaks = "1 year", date_labels = "%Y") +
   labs(
-    title = "Business Applications by Sector (Jan 2020 = 100)",
-    x     = NULL,
-    y     = "Index (Jan 2020 = 100)"
+    title   = "Business Applications by Sector (Nov 2022 = 100)",
+    x       = NULL,
+    y       = "Index (Nov 2022 = 100)",
+    caption = "Source: Census Bureau Business Formation Statistics."
   ) +
   theme_paper +
-  theme(legend.text = element_text(size = 8))
+  theme(
+    legend.text    = element_text(size = 8),
+    plot.caption   = element_text(size = 7, hjust = 0, colour = "grey40")
+  )
 
 ggsave(file.path(ROOT, "Draft", "fig_spotlight.pdf"), fig_spotlight,
        width = 7, height = 4, device = "pdf")
@@ -481,14 +481,8 @@ series_meta <- tribble(
   "cba",    "Corrected Applications (CBA)",                  TRUE,
   "hba",    "High-Propensity Applications (HBA)",            TRUE,
   "wba",    "Applications w/ Planned Wages (WBA)",           TRUE,
-  "bf4q",   "Formations \u22644Q (BF4Q)",                    TRUE,
-  "bf8q",   "Formations \u22648Q (BF8Q)",                    TRUE,
-  "pbf4q",  "Projected Formations \u22644Q (PBF4Q)",         TRUE,
-  "pbf8q",  "Projected Formations \u22648Q (PBF8Q)",         TRUE,
   "sbf4q",  "SA Formations \u22644Q (SBF4Q)",                TRUE,
-  "sbf8q",  "SA Formations \u22648Q (SBF8Q)",                TRUE,
-  "dur4q",  "Median Weeks to Formation \u22644Q (DUR4Q)",    FALSE,
-  "dur8q",  "Median Weeks to Formation \u22648Q (DUR8Q)",    FALSE
+  "sbf8q",  "SA Formations \u22648Q (SBF8Q)",                TRUE
 )
 
 # Use the merged df (df_reg already has naics2, ym, event_t, aioe_norm)
@@ -688,7 +682,7 @@ run_did <- function(col, data, label) {
 
 # Tab only shows 5 core series to keep the table page-width.
 # Full set of series (incl. pbf, sbf, dur) appears in fig_es_robust.
-table_series <- c("cba", "hba", "wba", "bf4q")
+table_series <- c("cba", "hba", "wba", "sbf4q", "sbf8q")
 for (col in table_series) {
   if (!series_present(col)) next
   mod <- run_did(col, df_reg, col_labels[col])
@@ -710,9 +704,9 @@ if (length(robust_models) > 1) {
     notes    = paste(
       "Standard errors clustered by 2-digit NAICS sector.",
       "All specifications include sector and month fixed effects.",
-      "BA = total business applications; HBA = high-propensity business",
-      "applications; WBA = applications with planned wages;",
-      "BF4Q = businesses formed within four quarters of application."
+      "BA = total business applications; CBA = corrected business applications;",
+      "HBA = high-propensity applications; WBA = applications with planned wages;",
+      "SBF4Q/SBF8Q = seasonally-adjusted formations within 4/8 quarters."
     ),
     escape   = FALSE
   )
@@ -885,11 +879,15 @@ fig_scatter <- ggplot(scatter_df, aes(x = aioe_norm, y = pct_change)) +
   labs(
     title    = "AI Exposure vs. Change in Business Applications",
     subtitle = paste0("Nov 2022 vs. ", format(latest_date, "%b %Y")),
-    x        = "AI Industry Exposure (AIOE, normalised 0-1)",
-    y        = "% change in business applications (post vs. pre)"
+    x        = "AI Industry Exposure",
+    y        = "% change in business applications",
+    caption  = "Sources: Census Bureau Business Formation Statistics; Felten, Raj & Seamans (2021)."
   ) +
   theme_paper +
-  theme(plot.subtitle = element_text(size = 8, colour = "grey40"))
+  theme(
+    plot.subtitle = element_text(size = 8, colour = "grey40"),
+    plot.caption  = element_text(size = 7, hjust = 0, colour = "grey40")
+  )
 
 ggsave(file.path(ROOT, "Draft", "fig_scatter.pdf"), fig_scatter,
        width = 7, height = 5, device = "pdf")
