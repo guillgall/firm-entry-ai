@@ -63,9 +63,9 @@ While I cannot rule out confounding from other sector-specific trends, this dyna
 \label{sec:intro}
 % -----------------------------------------------------------------------
 
-After the COVID-19 shock, aggregate business applications surged \citep{decker2023surging}. The release of ChatGPT in November-2022 seems to have increased firm entry, too, specially after 2025, as seen in Figure~\ref{fig:spotlight}. 
+After the COVID-19 shock, aggregate business applications surged \citep{decker2023surging}. The release of ChatGPT in November-2022 seems to have increased firm entry, too, especially from 2024 onwards, as seen in Figure~\ref{fig:spotlight}. 
 
-This 2025 expansion is not uniform across sectors: industries such as Professional Services have increased more than the average, while others such as Construction have lagged behind. From this plot a simple observation arises: while the former sector is exposed to AI, the latter ones is less so. Does this pattern hold across all sectors, though? 
+This expansion is not uniform across sectors: industries such as Professional Services have increased more than the average, while others such as Construction have lagged behind. From this plot a simple observation arises: while the former sector is exposed to AI, the latter is less so. Does this pattern hold across all sectors, though? 
 
 \begin{figure}[H]
   \centering
@@ -74,7 +74,7 @@ This 2025 expansion is not uniform across sectors: industries such as Profession
   \label{fig:spotlight}
 \end{figure}
 
-In this paper I show that it does: AI-exposed sectors have experienced a firm entry boom, while less-exposed sectors have lagged behind. The scatter-plot in Figure~\ref{fig:scatter} illustrates this clearly.  
+In this paper I show that it does: AI-exposed sectors have experienced a firm entry boom, while less-exposed sectors have lagged behind.
 
 I also study the timing of this relationship: I show that it held temporarily in early 2023, but then more persistently from 2024 onwards. 
 
@@ -128,12 +128,12 @@ of the BFS series for each sector in the sample.
 \section{Results}
 \label{sec:results}
 % -----------------------------------------------------------------------
-I first focus on 2-digit NAICS industries. 
+I first focus on 2-digit NAICS industries.
 
 \subsection{Regression}
 \label{sec:results_desc}
 
-
+The scatter-plot in Figure~\ref{fig:scatter} illustrates the cross-sectional relationship clearly.
 Figure~\ref{fig:scatter} plots the percentage change in business
 applications from November~2022 to the most recent month available
 against each sector's AI exposure.
@@ -173,7 +173,7 @@ among economically larger sectors.
 \label{sec:results_did}
 
 
-I estimate the effect of AI exposure ($\text{AIIE}_{i}$) on business applicacations ($\text{BA}_{it}$) using a difference-in-differences (DiD) model of the form
+I estimate the effect of AI exposure ($\text{AIIE}_{i}$) on business applications ($\text{BA}_{it}$) using a difference-in-differences (DiD) model of the form
 \begin{equation}
   \log(\text{BA}_{it}) \;=\; \alpha_i + \gamma_t
     + \beta\,(\text{Post}_t \times \text{AIIE}_i) + \varepsilon_{it},
@@ -188,22 +188,16 @@ The coefficient $\beta$ identifies whether sectors with higher AI exposure
 experienced a differential change in business formation after ChatGPT.
 
 
-Table~\ref{tab:did} reports the DiD estimates.
+Table~\ref{tab:did} (Appendix~\ref{app:did}) reports the DiD estimates.
 All three columns pool the entire post-November~2022 period into a single
 \textit{Post} indicator, with columns~(1)--(3) using log business applications,
 the indexed BA outcome, and raw BA levels respectively.
-
-\input{tab_did.tex}
-
 To translate the coefficient into economically interpretable magnitudes,
-Table~\ref{tab:mfx} reports the implied percentage difference in business
+Table~\ref{tab:mfx} (Appendix~\ref{app:did}) reports the implied percentage difference in business
 applications relative to a sector at the 25th percentile of AI exposure,
 evaluated at selected percentiles of the AIOE distribution.
-A sector at the median of AI exposure is estimated to have had
-2.3\% more applications than a P25 sector in the post-ChatGPT period;
-the gap widens to 5.1\% at the 75th percentile and 10.7\% at the 90th.
 
-\input{tab_mfx.tex}
+The pooled \textit{Post} coefficient is statistically insignificant because the treatment effect is time-varying: pooling the full post-November~2022 window into a single indicator averages near-zero early-period effects with the large, persistent effects that only emerge from mid-2024 onwards, attenuating the estimate toward zero. The event study below makes this dynamic explicit.
 
 \subsection{Event Study}
 \label{sec:results_es}
@@ -260,9 +254,7 @@ window regardless of which outcome is used.
   \label{fig:es_robust}
 \end{figure}
 
-\begin{landscape}
-\input{tab_robust.tex}
-\end{landscape}
+The corresponding pooled DiD estimates across all six series are reported in Table~\ref{tab:robust} (Appendix~\ref{app:did}); as with the baseline, the pooled coefficients are statistically insignificant, consistent with the time-varying nature of the effect documented in the event study.
 
 \subsection{3-digit NAICS}
 \label{sec:3digit_robust}
@@ -348,7 +340,23 @@ main results; the sector-level estimates remain the primary evidence.
 \label{sec:conclusion}
 % -----------------------------------------------------------------------
 
-[Conclusion placeholder.]
+This paper documents a positive relationship between sectoral AI exposure and firm entry in the United States.
+Using monthly business application data from the Census Bureau Business Formation Statistics and the AI Industry Exposure index of \citet{felten2021occupational}, I find that industries with higher AI exposure have experienced markedly stronger business application growth following the release of ChatGPT in November~2022.
+
+The cross-sectional evidence is clear: Table~\ref{tab:scatter} shows that a one-standard-deviation increase in AI Industry Exposure is associated with a 46--55 percentage-point increase in business applications since November~2022 (unweighted OLS: $\hat{\delta}=54.9$, $p<0.01$; WLS: $\hat{\delta}=45.7$, $p<0.01$), and this relationship is robust to weighting by sector size and to disaggregation to the 3-digit NAICS level.
+The dynamic evidence, however, is more informative than the cross-section alone.
+The association is not immediate: effects emerge tentatively in early~2023 before fading, then re-emerge persistently and grow monotonically from mid-2024 onwards.
+This two-phase pattern---a brief early response, a quiescent middle period, and a durable late surge---broadly coincides with the diffusion and broader adoption of AI tools beyond early adopters, and is consistent with AI progressively lowering entry costs or raising entrepreneurial returns in exposed sectors.
+
+The pooled difference-in-differences estimate is statistically insignificant precisely because it averages near-zero early-period effects with the large effects that materialise only from mid-2024.
+The event study, which lets the coefficient vary month by month, clarifies the picture: from May~2024, every monthly coefficient is statistically significant at the 5\% level, and point estimates continue to widen through the end of the sample in early~2026.
+
+While I cannot rule out confounding from other sector-specific trends that happened to accelerate in high-exposure industries from mid-2024 onwards, the robustness of the pattern across alternative business-application series, across NAICS disaggregation levels, and across estimation approaches makes a purely coincidental explanation less compelling.
+
+Several directions remain for future work.
+Linking individual firm data to AI exposure measures would allow me to study the characteristics of new entrants in AI-exposed sectors and to distinguish among the mechanisms---lower entry costs, reduced informational barriers, or higher expected returns.
+Incorporating alternative AI exposure measures \citep{eloundou2024gpts} would further strengthen robustness.
+Extending the analysis to other countries would shed light on whether the US pattern reflects idiosyncratic institutional features or a broader regularity in how general-purpose technologies reshape the incentives to start a business.
 
 % -----------------------------------------------------------------------
 \appendix
@@ -359,6 +367,19 @@ main results; the sector-level estimates remain the primary evidence.
 \bibliography{references}
 % -----------------------------------------------------------------------
 
+
+\section{Pooled Difference-in-Differences Estimates}
+\label{app:did}
+
+Tables~\ref{tab:did}, \ref{tab:mfx}, and~\ref{tab:robust} report the pooled DiD estimates for the baseline, the implied economic magnitudes, and the full suite of alternative BFS series respectively. As discussed in Section~\ref{sec:results_did}, the pooled \textit{Post} coefficients are statistically insignificant across all specifications because the treatment effect is time-varying; these tables are included for completeness.
+
+\input{tab_did.tex}
+
+\input{tab_mfx.tex}
+
+\begin{landscape}
+\input{tab_robust.tex}
+\end{landscape}
 
 \section{Summary Statistics}
 \label{app:summary}
@@ -416,7 +437,9 @@ Table~\ref{tab:es_regs_ols} reports the underlying regressions at
 selected post-launch horizons ($+6$, $+12$, $+18$, $+24$, $+30$,
 $+36$ months).
 
+\begin{landscape}
 \input{tab_event_study_regs_ols.tex}
+\end{landscape}
 
 Figure~\ref{fig:es_regs_facet} repeats the exercise under three
 additional specifications: weighted least squares using pre-period
@@ -457,8 +480,7 @@ entrepreneurial culture, regulatory environment, and industrial composition;
 month fixed effects absorb national macro shocks as before.
 Standard errors are clustered at the state level (56 clusters).
 
-Figure~\ref{fig:desc_state} provides raw descriptive evidence at the state
-level, analogous to Figure~\ref{fig:desc} for sectors.
+Figure~\ref{fig:desc_state} provides raw descriptive evidence at the state level.
 States are sorted into quartiles by their AIGE index and the cross-state
 mean of indexed business applications (January~2020\,=\,100) is plotted for
 each quartile.
