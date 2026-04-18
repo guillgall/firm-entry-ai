@@ -1,0 +1,25 @@
+\begin{table}
+\centering
+\begin{talltblr}[         %% tabularray outer open
+caption={Cross-Sectional Event Study (Spec. 4: OLS, outcome \%-change)},
+note{}={* p \num{< 0.1}, ** p \num{< 0.05}, *** p \num{< 0.01}},
+note{ }={Each column is a separate cross-sectional OLS regression across 2-digit NAICS sectors in the month indicated, with outcome defined relative to the November 2022 baseline (the reference month). HC1 heteroskedasticity-robust standard errors in parentheses.},
+]                     %% tabularray outer close
+{                     %% tabularray inner open
+colspec={Q[]Q[]Q[]Q[]Q[]Q[]Q[]},
+hline{2}={1-7}{solid, black, 0.05em},
+hline{6}={1-7}{solid, black, 0.05em},
+hline{1}={1-7}{solid, black, 0.08em},
+hline{8}={1-7}{solid, black, 0.08em},
+column{2-7}={}{halign=c},
+column{1}={}{halign=l},
+}                     %% tabularray inner close
+& May 2023 (t=+6) & Nov 2023 (t=+12) & May 2024 (t=+18) & Nov 2024 (t=+24) & May 2025 (t=+30) & Nov 2025 (t=+36) \\
+AI Exposure (AIOE) & \num{-2.040} & \num{-9.511} & \num{24.472}** & \num{29.517}* & \num{36.481}** & \num{49.870}** \\
+& (\num{6.291}) & (\num{10.962}) & (\num{9.616}) & (\num{14.261}) & (\num{13.944}) & (\num{19.589}) \\
+Constant & \num{7.442}* & \num{15.389}* & \num{-9.651}* & \num{-6.783} & \num{-12.161}* & \num{-7.152} \\
+& (\num{3.901}) & (\num{8.019}) & (\num{4.591}) & (\num{6.073}) & (\num{5.974}) & (\num{9.945}) \\
+Sectors & \num{19} & \num{19} & \num{19} & \num{19} & \num{19} & \num{19} \\
+R$^2$ & \num{0.009} & \num{0.029} & \num{0.234} & \num{0.238} & \num{0.332} & \num{0.219} \\
+\end{talltblr}
+\end{table}

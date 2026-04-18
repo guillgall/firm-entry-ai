@@ -1,4 +1,4 @@
-\begin{thebibliography}{3}
+\begin{thebibliography}{4}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -21,6 +21,13 @@ Ryan~A. Decker and John Haltiwanger.
   2023.
 \newblock URL \url{https://www.brookings.edu/wp-content/uploads/2023/09/
   Decker-Haltiwanger_16820-BPEA-FA23_WEB.pdf}.
+
+\bibitem[Eloundou et~al.(2024)Eloundou, Manning, Mishkin, and
+  Rock]{eloundou2024gpts}
+Tyna Eloundou, Sam Manning, Pamela Mishkin, and Daniel Rock.
+\newblock {GPTs} are {GPTs}: Labor market impact potential of {LLMs}.
+\newblock \emph{Science}, 384\penalty0 (6702):\penalty0 1306--1308, 2024.
+\newblock \doi{10.1126/science.adj0998}.
 
 \bibitem[Felten et~al.(2021)Felten, Raj, and Seamans]{felten2021occupational}
 Edward~W. Felten, Manav Raj, and Robert Seamans.

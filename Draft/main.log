@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex 2024.8.25)  17 APR 2026 16:23
+This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex 2024.8.25)  18 APR 2026 16:03
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -631,25 +631,20 @@ File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 
 {/usr/local/texlive/2024/texmf-var/fonts/map/pdftex/updmap/pdftex.map}{/usr/loc
 al/texlive/2024/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc}]
-<fig_spotlight.pdf, id=81, 505.89pt x 289.08pt>
+<fig_spotlight.pdf, id=87, 505.89pt x 289.08pt>
 File: fig_spotlight.pdf Graphic file (type pdf)
 <use fig_spotlight.pdf>
-Package pdftex.def Info: fig_spotlight.pdf  used on input line 71.
+Package pdftex.def Info: fig_spotlight.pdf  used on input line 72.
 (pdftex.def)             Requested size: 413.3867pt x 236.22668pt.
-<fig_scatter.pdf, id=82, 578.16pt x 433.62pt>
-File: fig_scatter.pdf Graphic file (type pdf)
-<use fig_scatter.pdf>
-Package pdftex.def Info: fig_scatter.pdf  used on input line 78.
-(pdftex.def)             Requested size: 328.82707pt x 246.61679pt.
  [2
 
- <./fig_spotlight.pdf>]
-<fig_event_study.pdf, id=97, 505.89pt x 289.08pt>
-File: fig_event_study.pdf Graphic file (type pdf)
-<use fig_event_study.pdf>
-Package pdftex.def Info: fig_event_study.pdf  used on input line 87.
-(pdftex.def)             Requested size: 328.82707pt x 187.90417pt.
- [3 <./fig_scatter.pdf> <./fig_event_study.pdf>] [4] (./tab_scatter.tex
+ <./fig_spotlight.pdf>] [3]
+<fig_scatter.pdf, id=133, 578.16pt x 433.62pt>
+File: fig_scatter.pdf Graphic file (type pdf)
+<use fig_scatter.pdf>
+Package pdftex.def Info: fig_scatter.pdf  used on input line 144.
+(pdftex.def)             Requested size: 328.82707pt x 246.61679pt.
+ (./tab_scatter.tex
 > Step: init table outer spec.
 > Step: parse table options.
 > Step: split table.
@@ -663,7 +658,7 @@ Underfull \hbox (badness 2326) in paragraph at lines 26--26
 []\OT1/cmr/m/n/12 Table 1: Cross--Sec-tional Re-gres-sion: AI Ex-po-sure and
  []
 
-) [5] (./tab_did.tex
+) [4 <./fig_scatter.pdf>] [5] (./tab_did.tex
 > Step: init table outer spec.
 > Step: parse table options.
 > Step: split table.
@@ -677,13 +672,20 @@ Underfull \hbox (badness 10000) in paragraph at lines 5--16
 [][]
  []
 
-[6]) [7]
-<fig_es_robust.pdf, id=188, 722.7pt x 867.24pt>
+) [6]
+<fig_event_study.pdf, id=179, 505.89pt x 289.08pt>
+File: fig_event_study.pdf Graphic file (type pdf)
+<use fig_event_study.pdf>
+Package pdftex.def Info: fig_event_study.pdf  used on input line 217.
+(pdftex.def)             Requested size: 328.82707pt x 187.90417pt.
+ [7 <./fig_event_study.pdf>]
+<fig_es_robust.pdf, id=199, 722.7pt x 867.24pt>
 File: fig_es_robust.pdf Graphic file (type pdf)
 <use fig_es_robust.pdf>
-Package pdftex.def Info: fig_es_robust.pdf  used on input line 251.
+Package pdftex.def Info: fig_es_robust.pdf  used on input line 257.
 (pdftex.def)             Requested size: 469.75502pt x 563.71257pt.
- [8] [9 <./fig_es_robust.pdf>] (./tab_robust.tex
+ [8] [9 <./fig_es_robust.pdf>]
+(./tab_robust.tex
 > Step: init table outer spec.
 > Step: parse table options.
 > Step: split table.
@@ -695,12 +697,12 @@ Package pdftex.def Info: fig_es_robust.pdf  used on input line 251.
 ) [10]
 
 LaTeX Warning: Reference `tab:scatter_naics3' on page 11 undefined on input lin
-e 271.
+e 277.
 
-<fig_scatter_naics3.pdf, id=217, 722.7pt x 505.89pt>
+<fig_scatter_naics3.pdf, id=228, 722.7pt x 505.89pt>
 File: fig_scatter_naics3.pdf Graphic file (type pdf)
 <use fig_scatter_naics3.pdf>
-Package pdftex.def Info: fig_scatter_naics3.pdf  used on input line 283.
+Package pdftex.def Info: fig_scatter_naics3.pdf  used on input line 289.
 (pdftex.def)             Requested size: 422.77664pt x 295.94058pt.
 (./tab_scatter_naics3.tex
 > Step: init table outer spec.
@@ -719,16 +721,16 @@ Underfull \hbox (badness 1527) in paragraph at lines 24--24
 )
 
 LaTeX Warning: Reference `tab:scatter_naics3' on page 11 undefined on input lin
-e 305.
+e 311.
 
 [11
 
 
  <./fig_scatter_naics3.pdf>]
-<fig_event_study_naics3.pdf, id=236, 578.16pt x 325.215pt>
+<fig_event_study_naics3.pdf, id=247, 578.16pt x 325.215pt>
 File: fig_event_study_naics3.pdf Graphic file (type pdf)
 <use fig_event_study_naics3.pdf>
-Package pdftex.def Info: fig_event_study_naics3.pdf  used on input line 318.
+Package pdftex.def Info: fig_event_study_naics3.pdf  used on input line 324.
 (pdftex.def)             Requested size: 469.75502pt x 264.23653pt.
  [12] (./main.bbl [13 <./fig_event_study_naics3.pdf>]
 Underfull \hbox (badness 1478) in paragraph at lines 18--24
@@ -748,15 +750,46 @@ Overfull \hbox (7.18387pt too wide) in paragraph at lines 7--38
  []
 
 ) [14] [15]
+<fig_event_study_regs.pdf, id=295, 578.16pt x 325.215pt>
+File: fig_event_study_regs.pdf Graphic file (type pdf)
+<use fig_event_study_regs.pdf>
+Package pdftex.def Info: fig_event_study_regs.pdf  used on input line 404.
+(pdftex.def)             Requested size: 399.29463pt x 224.60205pt.
+ [16] (./tab_event_study_regs_ols.tex
+> Step: init table outer spec.
+> Step: parse table options.
+> Step: split table.
+> Step: init table inner spec.
+> Step: parse table inner spec.
+> Step: execute table commands.
+> Step: calculate cell and line sizes.
 
-LaTeX Warning: Reference `fig:desc' on page 16 undefined on input line 379.
 
-<fig_desc_state.pdf, id=286, 505.89pt x 289.08pt>
+Package tabularray Warning: Table width is too small, need 296.08376pt more!
+
+> Step: build the whole table.
+
+Overfull \hbox (296.08376pt too wide) in paragraph at lines 25--26
+ [][] 
+ []
+
+) [17 <./fig_event_study_regs.pdf>]
+<fig_event_study_regs_facet.pdf, id=325, 722.7pt x 505.89pt>
+File: fig_event_study_regs_facet.pdf Graphic file (type pdf)
+<use fig_event_study_regs_facet.pdf>
+Package pdftex.def Info: fig_event_study_regs_facet.pdf  used on input line 433
+.
+(pdftex.def)             Requested size: 469.75502pt x 328.8323pt.
+ [18 <./fig_event_study_regs_facet.pdf>]
+
+LaTeX Warning: Reference `fig:desc' on page 19 undefined on input line 461.
+
+<fig_desc_state.pdf, id=345, 505.89pt x 289.08pt>
 File: fig_desc_state.pdf Graphic file (type pdf)
 <use fig_desc_state.pdf>
-Package pdftex.def Info: fig_desc_state.pdf  used on input line 386.
+Package pdftex.def Info: fig_desc_state.pdf  used on input line 468.
 (pdftex.def)             Requested size: 413.3867pt x 236.22668pt.
-[16 <./fig_desc_state.pdf>] (./tab_state.tex
+(./tab_state.tex
 > Step: init table outer spec.
 > Step: parse table options.
 > Step: split table.
@@ -765,20 +798,20 @@ Package pdftex.def Info: fig_desc_state.pdf  used on input line 386.
 > Step: execute table commands.
 > Step: calculate cell and line sizes.
 > Step: build the whole table.
-)
-<fig_es_state.pdf, id=306, 505.89pt x 289.08pt>
+) [19 <./fig_desc_state.pdf>]
+<fig_es_state.pdf, id=367, 505.89pt x 289.08pt>
 File: fig_es_state.pdf Graphic file (type pdf)
 <use fig_es_state.pdf>
-Package pdftex.def Info: fig_es_state.pdf  used on input line 426.
+Package pdftex.def Info: fig_es_state.pdf  used on input line 508.
 (pdftex.def)             Requested size: 413.3867pt x 236.22668pt.
- [17]
-<fig_es_state_facet.pdf, id=317, 578.16pt x 433.62pt>
+ [20]
+<fig_es_state_facet.pdf, id=376, 578.16pt x 433.62pt>
 File: fig_es_state_facet.pdf Graphic file (type pdf)
 <use fig_es_state_facet.pdf>
-Package pdftex.def Info: fig_es_state_facet.pdf  used on input line 442.
+Package pdftex.def Info: fig_es_state_facet.pdf  used on input line 524.
 (pdftex.def)             Requested size: 469.75502pt x 352.31538pt.
- [18 <./fig_es_state.pdf>]
-[19 <./fig_es_state_facet.pdf>] (./main.aux)
+ [21 <./fig_es_state.pdf>]
+[22 <./fig_es_state_facet.pdf>] (./main.aux)
  ***********
 LaTeX2e <2023-11-01> patch level 1
 L3 programming layer <2024-02-20>
@@ -787,54 +820,40 @@ L3 programming layer <2024-02-20>
 
 LaTeX Warning: There were undefined references.
 
-
-LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
-
 Package rerunfilecheck Info: File `main.out' has not changed.
-(rerunfilecheck)             Checksum: 082BAFAD78EED9480EF497A03795CF62;1996.
+(rerunfilecheck)             Checksum: 1400A072DA11AF2638B8F5399E41CEC9;2268.
  ) 
 Here is how much of TeX's memory you used:
- 16010 strings out of 474116
- 283119 string characters out of 5743682
- 1957187 words of memory out of 5000000
- 38071 multiletter control sequences out of 15000+600000
- 578148 words of font info for 102 fonts, out of 8000000 for 9000
+ 16067 strings out of 474116
+ 284712 string characters out of 5743682
+ 1954187 words of memory out of 5000000
+ 38116 multiletter control sequences out of 15000+600000
+ 579811 words of font info for 105 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 75i,15n,101p,826b,1019s stack positions out of 10000i,1000n,20000p,200000b,200000s
-
-pdfTeX warning (dest): name{figure.caption.17} has been referenced but does not
- exist, replaced by a fixed one
-
-
-pdfTeX warning (dest): name{figure.caption.15} has been referenced but does not
- exist, replaced by a fixed one
-
-
-pdfTeX warning (dest): name{table.caption.13} has been referenced but does not 
-exist, replaced by a fixed one
-
-</usr/local/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb><
-/usr/local/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></
-usr/local/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></u
-sr/local/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi12.pfb></us
-r/local/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr/
-local/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></usr/lo
-cal/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/loca
-l/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/local/
-texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb></usr/local/te
-xlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/local/texli
-ve/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/local/texlive/
-2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texlive/2
-024/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb></usr/local/texlive/20
-24/texmf-dist/fonts/type1/public/amsfonts/cm/cmti12.pfb></usr/local/texlive/202
-4/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt12.pfb></usr/local/texlive/2024
-/texmf-dist/fonts/type1/public/amsfonts/symbols/msam10.pfb></usr/local/texlive/
-2024/texmf-dist/fonts/type1/public/cm-super/sfrm0700.pfb></usr/local/texlive/20
-24/texmf-dist/fonts/type1/public/cm-super/sfrm1000.pfb>
-Output written on main.pdf (19 pages, 383315 bytes).
+ 75i,15n,101p,827b,1033s stack positions out of 10000i,1000n,20000p,200000b,200000s
+</usr/local/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb
+></usr/local/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb>
+</usr/local/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb><
+/usr/local/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></
+usr/local/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi12.pfb></u
+sr/local/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr
+/local/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></usr/l
+ocal/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/loc
+al/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/local
+/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb></usr/local/t
+exlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/local/texl
+ive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/local/texlive
+/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texlive/
+2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb></usr/local/texlive/2
+024/texmf-dist/fonts/type1/public/amsfonts/cm/cmti12.pfb></usr/local/texlive/20
+24/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt12.pfb></usr/local/texlive/202
+4/texmf-dist/fonts/type1/public/amsfonts/symbols/msam10.pfb></usr/local/texlive
+/2024/texmf-dist/fonts/type1/public/cm-super/sfrm0700.pfb></usr/local/texlive/2
+024/texmf-dist/fonts/type1/public/cm-super/sfrm1000.pfb>
+Output written on main.pdf (22 pages, 494187 bytes).
 PDF statistics:
- 442 PDF objects out of 1000 (max. 8388607)
- 363 compressed objects within 4 object streams
- 78 named destinations out of 1000 (max. 500000)
- 166 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 506 PDF objects out of 1000 (max. 8388607)
+ 416 compressed objects within 5 object streams
+ 87 named destinations out of 1000 (max. 500000)
+ 184 words of extra memory for PDF output out of 10000 (max. 10000000)
 

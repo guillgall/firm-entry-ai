@@ -36,7 +36,7 @@
 % -----------------------------------------------------------------------
 % Title
 % -----------------------------------------------------------------------
-\title{Firm Entry and AI:\\
+\title{Firm Entry and AI Exposure:\\
        Evidence from US Industries}
 \author{Guillermo Gallacher%
        \thanks{Email: \href{mailto:guillermogallacher@gmail.com}{guillermogallacher@gmail.com}. Web: \href{https://guillgall.github.io/}{guillgall.github.io}.}}
@@ -50,7 +50,10 @@
 
 \begin{abstract}
   \noindent
-In this short paper, I show that, following the release of ChatGPT in November 2022, firm entry increased in AI-exposed sectors, temporarily in early 2023 and then more persistently from 2024 onwards. Using monthly sector-level business application data from the Census Bureau Business Formation Statistics, I find that the effect is [X]\% larger for a sector at the 75th versus 25th percentile of AI exposure.
+I study the relationship between sectoral AI exposure and firm entry in the United States. 
+Using monthly business application data from the Census Bureau Business Formation Statistics and the AI Industry Exposure index of \citet{felten2021occupational}, I document an association between a sector's AI exposure and its post-2022 business application growth. 
+The association is not immediate: the effect emerges only tentatively in early 2023 before fading, then re-emerges persistently and grows monotonically from mid-2024 onwards, broadly coinciding with the diffusion and broader adoption of AI tools. 
+While I cannot rule out confounding from other sector-specific trends, this dynamic pattern is consistent with AI progressively lowering entry costs or raising entrepreneurial returns in exposed sectors.
 \end{abstract}
 
 \clearpage
@@ -60,11 +63,9 @@ In this short paper, I show that, following the release of ChatGPT in November 2
 \label{sec:intro}
 % -----------------------------------------------------------------------
 
-After the COVID-19 shock, aggregate business applications surged \citep{decker2023surging}. The release of ChatGPT in November-2022 seems to have increased firm entry, too, specially after 2024, as seen in Figure~\ref{fig:spotlight}. This expansion is not uniform across sectors. 
+After the COVID-19 shock, aggregate business applications surged \citep{decker2023surging}. The release of ChatGPT in November-2022 seems to have increased firm entry, too, specially after 2025, as seen in Figure~\ref{fig:spotlight}. 
 
-Sectors such as Professional Services have increased more than the average, while others such as Construction have lagged behind. From this plot a simple observation arises: while the former sector is exposed to AI, the latter ones is less so. Does this pattern hold across all sectors, though? 
-
-In this paper I show that it does: AI-exposed sectors have experienced a firm entry boom, while less-exposed sectors have lagged behind. The scatter-plot in Figure~\ref{fig:scatter} illustrates this clearly.  
+This 2025 expansion is not uniform across sectors: industries such as Professional Services have increased more than the average, while others such as Construction have lagged behind. From this plot a simple observation arises: while the former sector is exposed to AI, the latter ones is less so. Does this pattern hold across all sectors, though? 
 
 \begin{figure}[H]
   \centering
@@ -73,24 +74,10 @@ In this paper I show that it does: AI-exposed sectors have experienced a firm en
   \label{fig:spotlight}
 \end{figure}
 
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=0.7\textwidth]{fig_scatter}
-  \caption{AI exposure versus change in business applications by 2-digit NAICS sector.}
-  \label{fig:scatter}
-\end{figure}
+In this paper I show that it does: AI-exposed sectors have experienced a firm entry boom, while less-exposed sectors have lagged behind. The scatter-plot in Figure~\ref{fig:scatter} illustrates this clearly.  
 
 I also study the timing of this relationship: I show that it held temporarily in early 2023, but then more persistently from 2024 onwards. 
 
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=0.7\textwidth]{fig_event_study}
-  \caption{Event-study estimates: effect of AI exposure on
-           $\log(\text{Business Applications})$ relative to
-           November 2022 ($t = 0$). Shaded band is the 95\,\% confidence
-           interval based on sector-clustered standard errors.}
-  \label{fig:es}
-\end{figure}
 
 
 \paragraph{Contribution to the literature}
@@ -105,7 +92,7 @@ transformative AI reshapes firm organisation, adoption incentives, and
 competitive dynamics---a natural complement to the reduced-form evidence
 presented here.
 \citet{felten2021occupational} construct the AIOE/AIIE index by combining
-O*NET task measures with AI capability scores.
+O*NET task measures with AI capability scores. In future iterations of this paper, I plan to include other AI exposure metrics, such as the LLM-based occupational exposure scores developed by \citet{eloundou2024gpts}.
 
 I combine the AI literature with the firm entry dimension, by using business formation data as in \citet{decker2023surging}, and papers cited therein.
 
@@ -127,13 +114,13 @@ EIN applications are a leading indicator of actual business formation \citep{dec
 \subsection{AI Exposure}
 \label{sec:data_ai}
 
-Following \citet{felten2021occupational}, we use the AI Industry Exposure
+Following \citet{felten2021occupational}, I use the AI Industry Exposure
 (AIIE) index, which maps occupational AI exposure scores to 4-digit NAICS
 industries through BLS employment weights.
-We aggregate to 2-digit NAICS using employment-weighted averaging,
+I aggregate to 2-digit and 2-digit NAICS using employment-weighted averaging,
 with 2019 BLS OES industry employment counts as weights, consistent
-with Felten et al.'s own use of 2019 employment in constructing the index.\footnote{Results are unchanged when using an unweighted mean across 4-digit sub-industries.}
-Table~\ref{tab:summary} in Appendix~\ref{app:summary} reports the AIIE score alongside summary statistics
+with \citet{felten2021occupational} own use of 2019 employment in constructing the index.\footnote{Results are unchanged when using an unweighted mean across 4-digit sub-industries.}
+Table~\ref{tab:summary} in Appendix~\ref{app:summary} reports the AIIE 2-digit score alongside summary statistics
 of the BFS series for each sector in the sample.
 
 
@@ -141,13 +128,27 @@ of the BFS series for each sector in the sample.
 \section{Results}
 \label{sec:results}
 % -----------------------------------------------------------------------
+I first focus on 2-digit NAICS industries. 
 
 \subsection{Regression}
 \label{sec:results_desc}
 
+
 Figure~\ref{fig:scatter} plots the percentage change in business
 applications from November~2022 to the most recent month available
 against each sector's AI exposure.
+
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.7\textwidth]{fig_scatter}
+  \caption{AI exposure versus change in business applications by 2-digit NAICS sector.}
+  \label{fig:scatter}
+\end{figure}
+
+\input{tab_scatter.tex}
+
+
 
 
 
@@ -187,11 +188,6 @@ The coefficient $\beta$ identifies whether sectors with higher AI exposure
 experienced a differential change in business formation after ChatGPT.
 
 
-
-
-
-\input{tab_scatter.tex}
-
 Table~\ref{tab:did} reports the DiD estimates.
 All three columns pool the entire post-November~2022 period into a single
 \textit{Post} indicator, with columns~(1)--(3) using log business applications,
@@ -216,6 +212,16 @@ Figure~\ref{fig:es} presents the event-study coefficients.
 The pre-period estimates ($t < 0$) are small and statistically
 indistinguishable from zero, supporting the parallel-trends assumption.
 
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.7\textwidth]{fig_event_study}
+  \caption{Event-study estimates: effect of AI exposure on
+           $\log(\text{Business Applications})$ relative to
+           November 2022 ($t = 0$). Shaded band is the 95\,\% confidence
+           interval based on sector-clustered standard errors.}
+  \label{fig:es}
+\end{figure}
+
 A handful of coefficients are statistically significant in the first
 months immediately following the ChatGPT release, suggesting an early, tentative response.
 These effects then recede into insignificance across roughly a year, before re-emerging persistently from
@@ -232,11 +238,11 @@ $t = +36$.
 \subsection{Alternative Business Applications Metrics}
 \label{sec:ba_robust}
 
-We probe robustness by substituting the outcome with the full suite of available BFS series spanning the formation funnel. 
+I probe robustness by substituting the outcome with the full suite of available BFS series spanning the formation funnel. 
 
-On the applications side, we use corrected business applications (CBA), which purge filings unlikely to yield an employer business; high-propensity applications (HBA), which restrict to applicants with a high predicted probability of hiring; and applications with planned wages (WBA), indicating explicit intent to hire. 
+On the applications side, I use corrected business applications (CBA), which purge filings unlikely to yield an employer business; high-propensity applications (HBA), which restrict to applicants with a high predicted probability of hiring; and applications with planned wages (WBA), indicating explicit intent to hire. 
 
-On the formations side, we use seasonally-adjusted formations within four and eight quarters (SBF4Q, SBF8Q). The realised formation counts (BF4Q, BF8Q) are excluded as the Census has not yet published these beyond 2022 due to publication lags.
+On the formations side, I use seasonally-adjusted formations within four and eight quarters (SBF4Q, SBF8Q). The realised formation counts (BF4Q, BF8Q) are excluded as the Census has not yet published these beyond 2022 due to publication lags.
 
 Figure~\ref{fig:es_robust} presents the corresponding event-study
 coefficients for all six series.
@@ -358,6 +364,82 @@ main results; the sector-level estimates remain the primary evidence.
 \label{app:summary}
 
 \input{tab_summary.tex}
+
+\section{Event Study via Cross-Sectional Regressions}
+\label{app:es_regs}
+
+As a robustness check on the DiD event study in
+Section~\ref{sec:results_es}, I re-estimate the dynamic effect of AI
+exposure on business applications without the two-way fixed-effects
+structure, running instead a separate cross-sectional regression for
+each calendar month:
+\begin{equation}
+  \Delta\log\text{BA}_{i,t} \;=\; \alpha_t + \beta_t\,\text{AIIE}_i
+                              + \varepsilon_{i,t},
+  \label{eq:es_regs}
+\end{equation}
+where $\Delta\log\text{BA}_{i,t} = \log(\text{BA}_{i,t}) -
+\log(\text{BA}_{i,\text{Nov 2022}})$ is the log-change in business
+applications for sector~$i$ between month~$t$ and the November~2022
+baseline, and $\text{AIIE}_i$ is the normalised AI Industry Exposure
+index. Each of the 19 two-digit NAICS sectors contributes one
+observation per regression; November~2022 is the omitted reference with
+$\widehat{\beta}_t = 0$ by construction. Standard errors are HC1
+heteroskedasticity-robust.
+
+The coefficient path $\{\widehat{\beta}_t\}$, plotted in
+Figure~\ref{fig:es_regs}, is the analogue of a standard event-study
+but estimated without pooling across months and without imposing
+sector or month fixed effects: identification comes purely from the
+cross-sectional gradient between AI exposure and application growth
+at each horizon. The pre-period estimates cluster tightly around zero,
+and the post-launch dynamics closely track those of the DiD event study
+in Figure~\ref{fig:es}: a short-lived response in early~2023, a flat
+period through late~2023, and a persistently significant, monotonically
+widening gap from mid-2024 through the end of the sample in
+March~2026.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.85\textwidth]{fig_event_study_regs}
+  \caption{Monthly cross-sectional regressions of the log-change in
+           business applications (relative to November~2022) on AI Industry
+           Exposure across 2-digit NAICS sectors. Each point is the OLS
+           slope $\widehat{\beta}_t$ from equation~\eqref{eq:es_regs}
+           estimated in a separate regression for that month; shaded band
+           is the 95\,\% confidence interval using HC1 robust standard
+           errors. Points coloured by significance.}
+  \label{fig:es_regs}
+\end{figure}
+
+Table~\ref{tab:es_regs_ols} reports the underlying regressions at
+selected post-launch horizons ($+6$, $+12$, $+18$, $+24$, $+30$,
+$+36$ months).
+
+\input{tab_event_study_regs_ols.tex}
+
+Figure~\ref{fig:es_regs_facet} repeats the exercise under three
+additional specifications: weighted least squares using pre-period
+business applications as sector weights; an OLS specification that
+replaces the continuous AIIE score with AI-exposure quartile dummies
+(Q4 vs.\ Q1 reference); and an OLS specification that uses
+\mbox{\%-change} in BA as the outcome rather than log-change. The
+coefficient paths are qualitatively similar across all four
+specifications, with post-2024 effects that are statistically
+significant and widening in every case.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{fig_event_study_regs_facet}
+  \caption{Robustness of the cross-sectional event study across four
+           specifications. Panel~(1) is the baseline OLS on normalised
+           AIIE; panel~(2) reweights by pre-period BA;
+           panel~(3) uses AI-exposure quartile dummies; panel~(4)
+           replaces the log-change outcome with a \mbox{\%-change}
+           outcome. Shaded bands are 95\,\% confidence intervals
+           using HC1 robust standard errors.}
+  \label{fig:es_regs_facet}
+\end{figure}
 
 \section{State-Level Robustness}
 \label{app:state}
